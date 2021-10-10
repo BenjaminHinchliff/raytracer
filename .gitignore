@@ -1,3 +1,4 @@
 builddir/
 *.swp
 compile_commands.json
+.cache/
