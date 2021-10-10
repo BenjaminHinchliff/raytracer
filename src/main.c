@@ -1,8 +1,10 @@
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
+
+#include "vec3.h"
 
 int main(int argc, char **argv) {
   const int image_width = 256;
@@ -29,7 +31,8 @@ int main(int argc, char **argv) {
     }
   }
 
-  stbi_write_png("out.png", image_width, image_height, num_channels, image, image_width * num_channels);
+  stbi_write_png("out.png", image_width, image_height, num_channels, image,
+                 image_width * num_channels);
   fprintf(stderr, "\nDone!\n");
 
   return 0;
