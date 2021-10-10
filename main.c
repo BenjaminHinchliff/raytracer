@@ -12,6 +12,7 @@ int main(int argc, char **argv) {
   uint8_t image[image_width * image_height * num_channels];
 
   for (int i = image_height - 1; i >= 0; i -= 1) {
+    fprintf(stderr, "\rScanlines remaining: %d ", i);
     for (int j = 0; j < image_width; j += 1) {
       double r = (double)j / (double)(image_width - 1);
       double g = (double)i / (double)(image_height - 1);
@@ -29,6 +30,7 @@ int main(int argc, char **argv) {
   }
 
   stbi_write_png("out.png", image_width, image_height, num_channels, image, image_width * num_channels);
+  fprintf(stderr, "\nDone!\n");
 
   return 0;
 }
