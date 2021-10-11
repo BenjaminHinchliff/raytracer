@@ -8,7 +8,9 @@
 extern "C" {
 #endif
 
-void vec3_to_color(const vec3 color, uint8_t *r, uint8_t *g, uint8_t *b);
+typedef Vec3 Color;
+
+void vec3_to_color(const Color color, uint8_t *r, uint8_t *g, uint8_t *b);
 
 #ifdef __cplusplus
 }
