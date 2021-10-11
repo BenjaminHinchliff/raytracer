@@ -4,6 +4,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
 
+#include "color.h"
 #include "vec3.h"
 
 int main(int argc, char **argv) {
@@ -16,18 +17,16 @@ int main(int argc, char **argv) {
   for (int i = image_height - 1; i >= 0; i -= 1) {
     fprintf(stderr, "\rScanlines remaining: %d ", i);
     for (int j = 0; j < image_width; j += 1) {
-      double r = (double)j / (double)(image_width - 1);
-      double g = (double)i / (double)(image_height - 1);
-      double b = 0.25;
+      vec3 color = vec3_new((double)j / (double)(image_width - 1),
+                            (double)i / (double)(image_height - 1), 0.25);
 
-      uint8_t ir = (int)(r * 255.999);
-      uint8_t ig = (int)(g * 255.999);
-      uint8_t ib = (int)(b * 255.999);
+      uint8_t r, g, b;
+      vec3_to_color(color, &r, &g, &b);
 
       int offset = (image_height * (image_height - i - 1) + j) * num_channels;
-      image[offset] = ir;
-      image[offset + 1] = ig;
-      image[offset + 2] = ib;
+      image[offset] = r;
+      image[offset + 1] = g;
+      image[offset + 2] = b;
     }
   }
 

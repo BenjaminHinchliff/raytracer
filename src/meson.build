@@ -1,4 +1,5 @@
 srcs = files([
+  'color.c',
   'main.c',
   'vec3.c'
 ])
