@@ -8,6 +8,8 @@ typedef struct Ray {
   Vec3 dir;
 } Ray;
 
+Ray ray_new(Point3 orig, Vec3 dir);
+
 Point3 ray_at(Ray ray, double t);
 
 #endif
