@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -8,7 +9,19 @@
 #include "ray.h"
 #include "vec3.h"
 
+bool hit_sphere(const Point3 center, double radius, const Ray ray) {
+  Vec3 oc = vec3_sub(ray.orig, center);
+  double a = vec3_dot(ray.dir, ray.dir);
+  double b = 2.0 * vec3_dot(oc, ray.dir);
+  double c = vec3_dot(oc, oc) - radius * radius;
+  double discriminant = b * b - 4 * a * c;
+  return discriminant > 0.0;
+}
+
 Color ray_color(const Ray ray) {
+  if (hit_sphere(vec3_new(0.0, 0.0, -1.0), 0.5, ray)) {
+    return vec3_new(1.0, 0.0, 0.0);
+  }
   Vec3 unit_dir = vec3_unit_vector(ray.dir);
   double t = 0.5 * (unit_dir.y + 1.0);
   return vec3_add(vec3_mul_scalar(vec3_new(1.0, 1.0, 1.0), 1.0 - t),
