@@ -1,3 +1,4 @@
+#include "hittable.h"
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -23,17 +24,27 @@ double hit_sphere(const Point3 center, double radius, const Ray ray) {
   }
 }
 
+Vec3 lerp(Vec3 u, Vec3 v, double t) {
+  const Vec3 su = vec3_mul_scalar(u, 1.0 - t);
+  const Vec3 sv = vec3_mul_scalar(v, t);
+  return vec3_add(su, sv);
+}
+
 Color ray_color(const Ray ray) {
-  double t = hit_sphere(vec3_new(0.0, 0.0, -1.0), 0.5, ray);
-  if (t > 0.0) {
-    Vec3 N =
-        vec3_unit_vector(vec3_sub(ray_at(ray, t), vec3_new(0.0, 0.0, -1.0)));
+  Hittable sphere = {
+      .type = HITTABLE_TYPE_sphere,
+      .center = vec3_new(0.0, 0.0, -1.0),
+      .radius = 0.5,
+  };
+  HitRecord rec;
+  bool hit = hittable_hit(sphere, ray, 0, INFINITY, &rec);
+  if (hit) {
+    const Vec3 N = rec.normal;
     return vec3_mul_scalar(vec3_new(N.x + 1.0, N.y + 1.0, N.z + 1.0), 0.5);
   }
   Vec3 unit_dir = vec3_unit_vector(ray.dir);
-  t = 0.5 * (unit_dir.y + 1.0);
-  return vec3_add(vec3_mul_scalar(vec3_new(1.0, 1.0, 1.0), 1.0 - t),
-                  vec3_mul_scalar(vec3_new(0.5, 0.7, 1.0), t));
+  double t = 0.5 * (unit_dir.y + 1.0);
+  return lerp(vec3_new(1.0, 1.0, 1.0), vec3_new(0.5, 0.7, 1.0), t);
 }
 
 Point3 get_lower_left_corner(Point3 origin, Vec3 horizontal, Vec3 vertical,
