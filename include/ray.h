@@ -1,6 +1,10 @@
 #ifndef RAY_H
 #define RAY_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "vec3.h"
 
 typedef struct Ray {
@@ -11,5 +15,9 @@ typedef struct Ray {
 Ray ray_new(Point3 orig, Vec3 dir);
 
 Point3 ray_at(Ray ray, double t);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
