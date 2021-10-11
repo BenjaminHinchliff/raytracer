@@ -38,3 +38,9 @@ Vec3 vec3_mul_scalar(Vec3 v, double t) {
 }
 
 Vec3 vec3_div_scalar(Vec3 v, double t) { return vec3_mul_scalar(v, 1 / t); }
+
+Vec3 vec3_lerp(Vec3 u, Vec3 v, double t) {
+  const Vec3 su = vec3_mul_scalar(u, 1.0 - t);
+  const Vec3 sv = vec3_mul_scalar(v, t);
+  return vec3_add(su, sv);
+}

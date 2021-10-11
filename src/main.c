@@ -10,26 +10,6 @@
 #include "ray.h"
 #include "vec3.h"
 
-double hit_sphere(const Point3 center, double radius, const Ray ray) {
-  Vec3 oc = vec3_sub(ray.orig, center);
-  double a = vec3_length_squared(ray.dir);
-  double half_b = vec3_dot(oc, ray.dir);
-  double c = vec3_length_squared(oc) - radius * radius;
-  double discriminant = half_b * half_b - a * c;
-
-  if (discriminant < 0) {
-    return -1.0;
-  } else {
-    return (-half_b - sqrt(discriminant)) / a;
-  }
-}
-
-Vec3 lerp(Vec3 u, Vec3 v, double t) {
-  const Vec3 su = vec3_mul_scalar(u, 1.0 - t);
-  const Vec3 sv = vec3_mul_scalar(v, t);
-  return vec3_add(su, sv);
-}
-
 Color ray_color(const Ray ray) {
   Hittable sphere = {
       .type = HITTABLE_TYPE_sphere,
@@ -44,7 +24,7 @@ Color ray_color(const Ray ray) {
   }
   Vec3 unit_dir = vec3_unit_vector(ray.dir);
   double t = 0.5 * (unit_dir.y + 1.0);
-  return lerp(vec3_new(1.0, 1.0, 1.0), vec3_new(0.5, 0.7, 1.0), t);
+  return vec3_lerp(vec3_new(1.0, 1.0, 1.0), vec3_new(0.5, 0.7, 1.0), t);
 }
 
 Point3 get_lower_left_corner(Point3 origin, Vec3 horizontal, Vec3 vertical,

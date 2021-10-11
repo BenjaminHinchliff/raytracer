@@ -31,6 +31,8 @@ Vec3 vec3_cross(Vec3 u, Vec3 v);
 Vec3 vec3_mul_scalar(Vec3 v, double t);
 Vec3 vec3_div_scalar(Vec3 v, double t);
 
+Vec3 vec3_lerp(Vec3 u, Vec3 v, double t);
+
 #ifdef __cplusplus
 }
 #endif
