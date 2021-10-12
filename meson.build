@@ -4,6 +4,8 @@ project('ctracer', 'c',
 
 cc = meson.get_compiler('c')
 
+assert(cc.has_header('stb_image_write.h'))
+
 m_dep = cc.find_library('m', required: false)
 
 inc = include_directories('include')
