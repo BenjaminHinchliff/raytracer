@@ -1,4 +1,3 @@
-#include "hittable.h"
 #include <math.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -7,8 +6,11 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
 
+#include "camera.h"
 #include "color.h"
+#include "hittable.h"
 #include "ray.h"
+#include "util.h"
 #include "vec3.h"
 
 Color ray_color(const Ray ray, const Hittable *world, const size_t world_len) {
@@ -28,6 +30,7 @@ int main(int argc, char **argv) {
   const int image_width = 400;
   const int image_height = (int)(image_width / aspect_ratio);
   const int num_channels = 3;
+  const int samples_per_pixel = 100;
 
   const Hittable world[] = {(Hittable){
                                 .type = HITTABLE_TYPE_sphere,
@@ -41,15 +44,7 @@ int main(int argc, char **argv) {
                             }};
   const size_t world_len = sizeof(world) / sizeof(Hittable);
 
-  double viewport_height = 2.0;
-  double viewport_width = aspect_ratio * viewport_height;
-  double focal_length = 1.0;
-
-  Point3 origin = vec3_new(0, 0, 0);
-  Vec3 horizontal = vec3_new(viewport_width, 0, 0);
-  Vec3 vertical = vec3_new(0, viewport_height, 0);
-  Point3 lower_left_corner =
-      get_lower_left_corner(origin, horizontal, vertical, focal_length);
+  Camera camera = camera_new();
 
   uint8_t *image =
       malloc(sizeof(uint8_t) * image_width * image_height * num_channels);
@@ -57,15 +52,14 @@ int main(int argc, char **argv) {
   for (int i = image_height - 1; i >= 0; i -= 1) {
     fprintf(stderr, "\rScanlines remaining: %d ", i);
     for (int j = 0; j < image_width; j += 1) {
-      double u = (double)j / (double)(image_width - 1);
-      double v = (double)i / (double)(image_height - 1);
-      Vec3 dir = lower_left_corner;
-      dir = vec3_add(dir, vec3_mul_scalar(horizontal, u));
-      dir = vec3_add(dir, vec3_mul_scalar(vertical, v));
-      dir = vec3_sub(dir, origin);
-      Ray ray = ray_new(origin, dir);
-
-      Color color = ray_color(ray, world, world_len);
+      Color color = vec3_origin();
+      for (int s = 0; s < samples_per_pixel; s += 1) {
+        double u = ((double)j + random_double()) / (double)(image_width - 1);
+        double v = ((double)i + random_double()) / (double)(image_height - 1);
+        Ray ray = camera_get_ray(camera, u, v);
+        color = vec3_add(color, ray_color(ray, world, world_len));
+      }
+      color = vec3_div_scalar(color, samples_per_pixel);
 
       uint8_t r, g, b;
       vec3_to_color(color, &r, &g, &b);

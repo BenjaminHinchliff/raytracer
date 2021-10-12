@@ -1,4 +1,5 @@
 #include "camera.h"
+#include "ray.h"
 #include "vec3.h"
 
 Point3 get_lower_left_corner(const Camera camera, double focal_length) {
@@ -23,4 +24,12 @@ Camera camera_new() {
   camera.lower_left_corner = get_lower_left_corner(camera, focal_length);
 
   return camera;
+}
+
+Ray camera_get_ray(const Camera camera, double u, double v) {
+  Vec3 dir = camera.lower_left_corner;
+  dir = vec3_add(dir, vec3_mul_scalar(camera.horizontal, u));
+  dir = vec3_add(dir, vec3_mul_scalar(camera.vertical, v));
+  dir = vec3_sub(dir, camera.origin);
+  return ray_new(camera.origin, dir);
 }
