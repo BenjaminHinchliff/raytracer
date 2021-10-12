@@ -1,4 +1,5 @@
 srcs = files([
+  'camera.c',
   'color.c',
   'hittable.c',
   'main.c',

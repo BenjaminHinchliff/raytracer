@@ -23,15 +23,6 @@ Color ray_color(const Ray ray, const Hittable *world, const size_t world_len) {
   return vec3_lerp(vec3_new(1.0, 1.0, 1.0), vec3_new(0.5, 0.7, 1.0), t);
 }
 
-Point3 get_lower_left_corner(Point3 origin, Vec3 horizontal, Vec3 vertical,
-                             double focal_length) {
-  Point3 llc = origin;
-  llc = vec3_sub(llc, vec3_div_scalar(horizontal, 2.0));
-  llc = vec3_sub(llc, vec3_div_scalar(vertical, 2.0));
-  llc = vec3_sub(llc, vec3_new(0.0, 0.0, focal_length));
-  return llc;
-}
-
 int main(int argc, char **argv) {
   const double aspect_ratio = 16.0 / 9.0;
   const int image_width = 400;
