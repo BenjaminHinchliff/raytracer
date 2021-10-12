@@ -1,5 +1,6 @@
 #include "hittable.h"
 #include <math.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -10,14 +11,9 @@
 #include "ray.h"
 #include "vec3.h"
 
-Color ray_color(const Ray ray) {
-  Hittable sphere = {
-      .type = HITTABLE_TYPE_sphere,
-      .center = vec3_new(0.0, 0.0, -1.0),
-      .radius = 0.5,
-  };
+Color ray_color(const Ray ray, const Hittable *world, const size_t world_len) {
   HitRecord rec;
-  bool hit = hittable_hit(sphere, ray, 0, INFINITY, &rec);
+  bool hit = hittable_hit_multiple(world, world_len, ray, 0, INFINITY, &rec);
   if (hit) {
     const Vec3 N = rec.normal;
     return vec3_mul_scalar(vec3_new(N.x + 1.0, N.y + 1.0, N.z + 1.0), 0.5);
@@ -41,6 +37,18 @@ int main(int argc, char **argv) {
   const int image_width = 400;
   const int image_height = (int)(image_width / aspect_ratio);
   const int num_channels = 3;
+
+  const Hittable world[] = {(Hittable){
+                                .type = HITTABLE_TYPE_sphere,
+                                .center = vec3_new(0.0, 0.0, -1.0),
+                                .radius = 0.5,
+                            },
+                            (Hittable){
+                                .type = HITTABLE_TYPE_sphere,
+                                .center = vec3_new(0.0, -100.5, -1.0),
+                                .radius = 100,
+                            }};
+  const size_t world_len = sizeof(world) / sizeof(Hittable);
 
   double viewport_height = 2.0;
   double viewport_width = aspect_ratio * viewport_height;
@@ -66,7 +74,7 @@ int main(int argc, char **argv) {
       dir = vec3_sub(dir, origin);
       Ray ray = ray_new(origin, dir);
 
-      Color color = ray_color(ray);
+      Color color = ray_color(ray, world, world_len);
 
       uint8_t r, g, b;
       vec3_to_color(color, &r, &g, &b);

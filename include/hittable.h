@@ -33,10 +33,10 @@ typedef struct Hittable {
   };
 } Hittable;
 
-bool hittable_hit(Hittable sphere, const Ray ray, double t_min, double t_max,
-                  HitRecord *rec);
+bool hittable_hit(const Hittable sphere, const Ray ray, double t_min,
+                  double t_max, HitRecord *rec);
 
-bool hittable_hit_multiple(Hittable *hittables, size_t num, const Ray ray,
+bool hittable_hit_multiple(const Hittable *hittables, size_t num, const Ray ray,
                            double t_min, double t_max, HitRecord *rec);
 
 #ifdef __cplusplus

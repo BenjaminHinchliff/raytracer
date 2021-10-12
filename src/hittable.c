@@ -14,10 +14,10 @@ HitRecord hit_record_set_face_normal(HitRecord hit_record, const Ray ray,
   return hit_record;
 }
 
-typedef bool (*hittable_fn)(Hittable sphere, const Ray ray, double t_min,
+typedef bool (*hittable_fn)(const Hittable sphere, const Ray ray, double t_min,
                             double t_max, HitRecord *rec);
 
-bool hittable_hit_sphere(Hittable sphere, const Ray ray, double t_min,
+bool hittable_hit_sphere(const Hittable sphere, const Ray ray, double t_min,
                          double t_max, HitRecord *rec) {
   Vec3 oc = vec3_sub(ray.orig, sphere.center);
   double a = vec3_length_squared(ray.dir);
@@ -46,7 +46,7 @@ bool hittable_hit_sphere(Hittable sphere, const Ray ray, double t_min,
   return true;
 }
 
-bool hittable_hit_panic(Hittable sphere, const Ray ray, double t_min,
+bool hittable_hit_panic(const Hittable sphere, const Ray ray, double t_min,
                         double t_max, HitRecord *rec) {
   fprintf(stderr, "ILLEGAL TYPE CALL IN get_hittable_action\n");
   exit(1);
@@ -57,12 +57,12 @@ hittable_fn get_hittable_action(enum HITTABLE_TYPE type) {
                                         : hittable_hit_panic;
 }
 
-bool hittable_hit(Hittable hittable, const Ray ray, double t_min, double t_max,
-                  HitRecord *rec) {
+bool hittable_hit(const Hittable hittable, const Ray ray, double t_min,
+                  double t_max, HitRecord *rec) {
   return get_hittable_action(hittable.type)(hittable, ray, t_min, t_max, rec);
 }
 
-bool hittable_hit_multiple(Hittable *hittables, size_t num, const Ray ray,
+bool hittable_hit_multiple(const Hittable *hittables, size_t num, const Ray ray,
                            double t_min, double t_max, HitRecord *rec) {
   HitRecord tmp_rec;
   bool hit = false;
