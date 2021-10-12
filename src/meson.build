@@ -3,6 +3,7 @@ srcs = files([
   'hittable.c',
   'main.c',
   'ray.c',
+  'util.c',
   'vec3.c'
 ])
 
