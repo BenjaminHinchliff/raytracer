@@ -16,6 +16,8 @@ double degrees_to_radians(double degrees);
 double random_double();
 double random_double_range(double min, double max);
 
+double clamp(double v, double min, double max);
+
 #ifdef __cplusplus
 }
 #endif
