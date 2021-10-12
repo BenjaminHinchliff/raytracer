@@ -6,6 +6,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+HitRecord hit_record_set_face_normal(HitRecord hit_record, const Ray ray,
+                                     const Vec3 outward_normal) {
+  hit_record.front_face = vec3_dot(ray.dir, outward_normal);
+  hit_record.normal =
+      hit_record.front_face ? outward_normal : vec3_neg(outward_normal);
+  return hit_record;
+}
+
 typedef bool (*hittable_fn)(Hittable sphere, const Ray ray, double t_min,
                             double t_max, HitRecord *rec);
 
@@ -52,4 +60,21 @@ hittable_fn get_hittable_action(enum HITTABLE_TYPE type) {
 bool hittable_hit(Hittable hittable, const Ray ray, double t_min, double t_max,
                   HitRecord *rec) {
   return get_hittable_action(hittable.type)(hittable, ray, t_min, t_max, rec);
+}
+
+bool hittable_hit_multiple(Hittable *hittables, size_t num, const Ray ray,
+                           double t_min, double t_max, HitRecord *rec) {
+  HitRecord tmp_rec;
+  bool hit = false;
+  double closest = t_max;
+
+  for (size_t i = 0; i < num; i += 1) {
+    if (hittable_hit(hittables[i], ray, t_min, closest, &tmp_rec)) {
+      hit = true;
+      closest = tmp_rec.t;
+      *rec = tmp_rec;
+    }
+  }
+
+  return hit;
 }

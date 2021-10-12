@@ -2,6 +2,7 @@
 #define HITTABLE_H
 
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "ray.h"
 #include "vec3.h"
@@ -14,6 +15,7 @@ typedef struct HitRecord {
   Point3 p;
   Vec3 normal;
   double t;
+  bool front_face;
 } HitRecord;
 
 enum HITTABLE_TYPE {
@@ -33,6 +35,9 @@ typedef struct Hittable {
 
 bool hittable_hit(Hittable sphere, const Ray ray, double t_min, double t_max,
                   HitRecord *rec);
+
+bool hittable_hit_multiple(Hittable *hittables, size_t num, const Ray ray,
+                           double t_min, double t_max, HitRecord *rec);
 
 #ifdef __cplusplus
 }
