@@ -64,3 +64,7 @@ Vec3 vec3_random_in_unit_sphere() {
     }
   }
 }
+
+Vec3 random_unit_sphere() {
+  return vec3_unit_vector(vec3_random_in_unit_sphere());
+}

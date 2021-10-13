@@ -20,7 +20,8 @@ Color ray_color(const Ray ray, const Hittable *world, const size_t world_len,
   }
 
   HitRecord rec;
-  bool hit = hittable_hit_multiple(world, world_len, ray, 0, INFINITY, &rec);
+  bool hit =
+      hittable_hit_multiple(world, world_len, ray, 0.001, INFINITY, &rec);
   if (hit) {
     Point3 target =
         vec3_add(vec3_add(rec.p, rec.normal), vec3_random_in_unit_sphere());
