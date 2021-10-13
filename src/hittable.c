@@ -14,15 +14,15 @@ HitRecord hit_record_set_face_normal(HitRecord hit_record, const Ray ray,
   return hit_record;
 }
 
-typedef bool (*hittable_fn)(const Hittable sphere, const Ray ray, double t_min,
+typedef bool (*hittable_fn)(const Hittable *sphere, const Ray ray, double t_min,
                             double t_max, HitRecord *rec);
 
-bool hittable_hit_sphere(const Hittable sphere, const Ray ray, double t_min,
+bool hittable_hit_sphere(const Hittable *sphere, const Ray ray, double t_min,
                          double t_max, HitRecord *rec) {
-  Vec3 oc = vec3_sub(ray.orig, sphere.center);
+  Vec3 oc = vec3_sub(ray.orig, sphere->center);
   double a = vec3_length_squared(ray.dir);
   double half_b = vec3_dot(oc, ray.dir);
-  double c = vec3_length_squared(oc) - sphere.radius * sphere.radius;
+  double c = vec3_length_squared(oc) - sphere->radius * sphere->radius;
 
   double discriminant = half_b * half_b - a * c;
   if (discriminant < 0) {
@@ -41,12 +41,15 @@ bool hittable_hit_sphere(const Hittable sphere, const Ray ray, double t_min,
 
   rec->t = root;
   rec->p = ray_at(ray, rec->t);
-  rec->normal = vec3_div_scalar(vec3_sub(rec->p, sphere.center), sphere.radius);
+  Vec3 outward_normal =
+      vec3_div_scalar(vec3_sub(rec->p, sphere->center), sphere->radius);
+  *rec = hit_record_set_face_normal(*rec, ray, outward_normal);
 
+  rec->material = &sphere->material;
   return true;
 }
 
-bool hittable_hit_panic(const Hittable sphere, const Ray ray, double t_min,
+bool hittable_hit_panic(const Hittable *sphere, const Ray ray, double t_min,
                         double t_max, HitRecord *rec) {
   fprintf(stderr, "ILLEGAL TYPE CALL IN get_hittable_action\n");
   exit(1);
@@ -57,9 +60,9 @@ hittable_fn get_hittable_action(enum HITTABLE_TYPE type) {
                                         : hittable_hit_panic;
 }
 
-bool hittable_hit(const Hittable hittable, const Ray ray, double t_min,
+bool hittable_hit(const Hittable *hittable, const Ray ray, double t_min,
                   double t_max, HitRecord *rec) {
-  return get_hittable_action(hittable.type)(hittable, ray, t_min, t_max, rec);
+  return get_hittable_action(hittable->type)(hittable, ray, t_min, t_max, rec);
 }
 
 bool hittable_hit_multiple(const Hittable *hittables, size_t num, const Ray ray,
@@ -69,7 +72,7 @@ bool hittable_hit_multiple(const Hittable *hittables, size_t num, const Ray ray,
   double closest = t_max;
 
   for (size_t i = 0; i < num; i += 1) {
-    if (hittable_hit(hittables[i], ray, t_min, closest, &tmp_rec)) {
+    if (hittable_hit(&hittables[i], ray, t_min, closest, &tmp_rec)) {
       hit = true;
       closest = tmp_rec.t;
       *rec = tmp_rec;

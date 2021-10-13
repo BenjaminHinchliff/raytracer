@@ -1,3 +1,4 @@
+#include "material.h"
 #include <math.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -23,11 +24,13 @@ Color ray_color(const Ray ray, const Hittable *world, const size_t world_len,
   bool hit =
       hittable_hit_multiple(world, world_len, ray, 0.001, INFINITY, &rec);
   if (hit) {
-    Point3 target =
-        vec3_add(vec3_add(rec.p, rec.normal), vec3_random_in_unit_sphere());
-    return vec3_mul_scalar(ray_color(ray_new(rec.p, vec3_sub(target, rec.p)),
-                                     world, world_len, depth - 1),
-                           0.5);
+    Ray scattered;
+    Color attenuation;
+    if (material_scatter(rec.material, ray, rec, &attenuation, &scattered)) {
+      return vec3_mul(ray_color(scattered, world, world_len, depth - 1),
+                      attenuation);
+    }
+    return vec3_origin();
   }
   Vec3 unit_dir = vec3_unit_vector(ray.dir);
   double t = 0.5 * (unit_dir.y + 1.0);
@@ -42,16 +45,22 @@ int main(int argc, char **argv) {
   const int samples_per_pixel = 100;
   const int max_depth = 50;
 
-  const Hittable world[] = {(Hittable){
-                                .type = HITTABLE_TYPE_sphere,
-                                .center = vec3_new(0.0, 0.0, -1.0),
-                                .radius = 0.5,
-                            },
-                            (Hittable){
-                                .type = HITTABLE_TYPE_sphere,
-                                .center = vec3_new(0.0, -100.5, -1.0),
-                                .radius = 100,
-                            }};
+  const Hittable world[] = {
+      (Hittable){.type = HITTABLE_TYPE_sphere,
+                 .center = vec3_new(0.0, 0.0, -1.0),
+                 .radius = 0.5,
+                 .material =
+                     {
+                         .type = MATERIAL_TYPE_lambertian,
+                         .albedo = vec3_new(0.7, 0.3, 0.3),
+                     }},
+      (Hittable){.type = HITTABLE_TYPE_sphere,
+                 .center = vec3_new(0.0, -100.5, -1.0),
+                 .radius = 100,
+                 .material = {
+                     .type = MATERIAL_TYPE_lambertian,
+                     .albedo = vec3_new(0.8, 0.8, 0.0),
+                 }}};
   const size_t world_len = sizeof(world) / sizeof(Hittable);
 
   Camera camera = camera_new();
