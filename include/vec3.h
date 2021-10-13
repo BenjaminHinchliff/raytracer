@@ -33,6 +33,10 @@ Vec3 vec3_div_scalar(Vec3 v, double t);
 
 Vec3 vec3_lerp(Vec3 u, Vec3 v, double t);
 
+Vec3 vec3_random();
+Vec3 vec3_random_range(double min, double max);
+Vec3 vec3_random_in_unit_sphere();
+
 #ifdef __cplusplus
 }
 #endif

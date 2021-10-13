@@ -13,12 +13,20 @@
 #include "util.h"
 #include "vec3.h"
 
-Color ray_color(const Ray ray, const Hittable *world, const size_t world_len) {
+Color ray_color(const Ray ray, const Hittable *world, const size_t world_len,
+                int depth) {
+  if (depth == 0) {
+    return vec3_origin();
+  }
+
   HitRecord rec;
   bool hit = hittable_hit_multiple(world, world_len, ray, 0, INFINITY, &rec);
   if (hit) {
-    const Vec3 N = rec.normal;
-    return vec3_mul_scalar(vec3_new(N.x + 1.0, N.y + 1.0, N.z + 1.0), 0.5);
+    Point3 target =
+        vec3_add(vec3_add(rec.p, rec.normal), vec3_random_in_unit_sphere());
+    return vec3_mul_scalar(ray_color(ray_new(rec.p, vec3_sub(target, rec.p)),
+                                     world, world_len, depth - 1),
+                           0.5);
   }
   Vec3 unit_dir = vec3_unit_vector(ray.dir);
   double t = 0.5 * (unit_dir.y + 1.0);
@@ -31,6 +39,7 @@ int main(int argc, char **argv) {
   const int image_height = (int)(image_width / aspect_ratio);
   const int num_channels = 3;
   const int samples_per_pixel = 100;
+  const int max_depth = 50;
 
   const Hittable world[] = {(Hittable){
                                 .type = HITTABLE_TYPE_sphere,
@@ -57,7 +66,7 @@ int main(int argc, char **argv) {
         double u = ((double)j + random_double()) / (double)(image_width - 1);
         double v = ((double)i + random_double()) / (double)(image_height - 1);
         Ray ray = camera_get_ray(camera, u, v);
-        color = vec3_add(color, ray_color(ray, world, world_len));
+        color = vec3_add(color, ray_color(ray, world, world_len, max_depth));
       }
       color = vec3_div_scalar(color, samples_per_pixel);
 

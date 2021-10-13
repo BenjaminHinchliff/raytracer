@@ -1,6 +1,8 @@
 #include "vec3.h"
+#include "util.h"
 
 #include <math.h>
+#include <stdbool.h>
 
 Vec3 vec3_origin() { return vec3_new(0.0, 0.0, 0.0); }
 
@@ -43,4 +45,22 @@ Vec3 vec3_lerp(Vec3 u, Vec3 v, double t) {
   const Vec3 su = vec3_mul_scalar(u, 1.0 - t);
   const Vec3 sv = vec3_mul_scalar(v, t);
   return vec3_add(su, sv);
+}
+
+Vec3 vec3_random() {
+  return vec3_new(random_double(), random_double(), random_double());
+}
+
+Vec3 vec3_random_range(double min, double max) {
+  return vec3_new(random_double_range(min, max), random_double_range(min, max),
+                  random_double_range(min, max));
+}
+
+Vec3 vec3_random_in_unit_sphere() {
+  while (true) {
+    Vec3 p = vec3_random_range(-1.0, 1.0);
+    if (vec3_length_squared(p) < 1.0) {
+      return p;
+    }
+  }
 }
