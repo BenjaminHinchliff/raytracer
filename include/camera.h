@@ -17,7 +17,7 @@ typedef struct Camera {
 
 Camera camera_new();
 
-Ray camera_get_ray(const Camera camera, double u, double v);
+Ray camera_get_ray(const Camera *camera, double u, double v);
 
 #ifdef __cplusplus
 }

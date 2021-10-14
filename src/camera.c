@@ -31,18 +31,18 @@ Camera camera_new() {
   return camera;
 }
 
-Ray camera_get_ray(const Camera camera, double u, double v) {
-  Vec3 dir = camera.lower_left_corner;
+Ray camera_get_ray(const Camera *camera, double u, double v) {
+  Vec3 dir = camera->lower_left_corner;
 
-  Vec3 scaled_u = camera.horizontal;
+  Vec3 scaled_u = camera->horizontal;
   vec3_mul_scalar(&scaled_u, u);
   vec3_add(&dir, &scaled_u);
 
-  Vec3 scaled_v = camera.vertical;
+  Vec3 scaled_v = camera->vertical;
   vec3_mul_scalar(&scaled_v, v);
   vec3_add(&dir, &scaled_v);
 
-  vec3_sub(&dir, &camera.origin);
+  vec3_sub(&dir, &camera->origin);
 
-  return ray_new(camera.origin, dir);
+  return ray_new(camera->origin, dir);
 }

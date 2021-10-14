@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-bool material_scatter(const Material *material, const Ray ray,
+bool material_scatter(const Material *material, const Ray *ray,
                       const struct HitRecord rec, Color *attenuation,
                       Ray *scattered) {
   Vec3 scatter_direction = rec.normal;

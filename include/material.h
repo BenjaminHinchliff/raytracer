@@ -25,7 +25,7 @@ typedef struct Material {
   };
 } Material;
 
-bool material_scatter(const Material *material, const Ray ray,
+bool material_scatter(const Material *material, const Ray *ray,
                       const struct HitRecord rec, Color *attenuation,
                       Ray *scattered);
 

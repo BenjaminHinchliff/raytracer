@@ -14,7 +14,7 @@
 #include "util.h"
 #include "vec3.h"
 
-Color ray_color(const Ray ray, const Hittable *world, const size_t world_len,
+Color ray_color(const Ray *ray, const Hittable *world, const size_t world_len,
                 int depth) {
   if (depth == 0) {
     return vec3_origin();
@@ -27,14 +27,14 @@ Color ray_color(const Ray ray, const Hittable *world, const size_t world_len,
     Ray scattered;
     Color attenuation;
     if (material_scatter(rec.material, ray, rec, &attenuation, &scattered)) {
-      Color color = ray_color(scattered, world, world_len, depth - 1);
+      Color color = ray_color(&scattered, world, world_len, depth - 1);
       vec3_mul(&color, &attenuation);
       return color;
     }
     return vec3_origin();
   }
 
-  Vec3 unit_dir = ray.dir;
+  Vec3 unit_dir = ray->dir;
   vec3_unit_vector(&unit_dir);
   double t = 0.5 * (unit_dir.y + 1.0);
   Color color = vec3_new(1.0, 1.0, 1.0);
@@ -80,14 +80,14 @@ int main(int argc, char **argv) {
       for (int s = 0; s < samples_per_pixel; s += 1) {
         double u = ((double)j + random_double()) / (double)(image_width - 1);
         double v = ((double)i + random_double()) / (double)(image_height - 1);
-        Ray ray = camera_get_ray(camera, u, v);
-        Color next_color = ray_color(ray, world, world_len, max_depth);
+        Ray ray = camera_get_ray(&camera, u, v);
+        Color next_color = ray_color(&ray, world, world_len, max_depth);
         vec3_add(&color, &next_color);
       }
       vec3_div_scalar(&color, samples_per_pixel);
 
       uint8_t r, g, b;
-      vec3_to_color(color, &r, &g, &b);
+      vec3_to_color(&color, &r, &g, &b);
 
       int offset = (image_width * (image_height - i - 1) + j) * num_channels;
       image[offset] = r;
