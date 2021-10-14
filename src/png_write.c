@@ -5,7 +5,8 @@
 #include <stdio.h>
 
 bool write_png_file(const char *filename, int width, int height,
-                    int num_channels, png_bytepp rows) {
+                    int num_channels, png_bytepp rows,
+                    png_write_status_ptr callback) {
   FILE *fp = fopen(filename, "wb");
   if (!fp) {
     return false;
@@ -31,6 +32,8 @@ bool write_png_file(const char *filename, int width, int height,
   }
 
   png_init_io(png_ptr, fp);
+
+  png_set_write_status_fn(png_ptr, callback);
 
   png_set_IHDR(png_ptr, info_ptr, width, height, 8, PNG_COLOR_TYPE_RGB,
                PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT,

@@ -9,7 +9,8 @@ extern "C" {
 #endif
 
 bool write_png_file(const char *filename, int width, int height,
-                    int num_channels, png_bytepp rows);
+                    int num_channels, png_bytepp rows,
+                    png_write_status_ptr callback);
 
 #ifdef __cplusplus
 }

@@ -8,10 +8,24 @@
 #include "color.h"
 #include "hittable.h"
 #include "material.h"
+#include "png.h"
 #include "png_write.h"
+#include "pngconf.h"
 #include "ray.h"
 #include "util.h"
 #include "vec3.h"
+
+const double aspect_ratio = 16.0 / 9.0;
+const int image_width = 400;
+const int image_height = (int)(image_width / aspect_ratio);
+const int num_channels = 3;
+const int samples_per_pixel = 100;
+const int max_depth = 50;
+
+void write_row_progress_callback(png_structp png_ptr, png_uint_32 row,
+                                 int pass) {
+  fprintf(stderr, "\rPng write rows remaining: %d ", image_height - row);
+}
 
 Color ray_color(const Ray *ray, const Hittable *world, const size_t world_len,
                 int depth) {
@@ -43,13 +57,6 @@ Color ray_color(const Ray *ray, const Hittable *world, const size_t world_len,
 }
 
 int main(int argc, char **argv) {
-  const double aspect_ratio = 16.0 / 9.0;
-  const int image_width = 400;
-  const int image_height = (int)(image_width / aspect_ratio);
-  const int num_channels = 3;
-  const int samples_per_pixel = 100;
-  const int max_depth = 50;
-
   const Hittable world[] = {{.type = HITTABLE_TYPE_sphere,
                              .center = vec3_new(0.0, 0.0, -1.0),
                              .radius = 0.5,
@@ -97,8 +104,10 @@ int main(int argc, char **argv) {
       image[y][x + 2] = b;
     }
   }
+  fprintf(stderr, "\n");
 
-  write_png_file("out.png", image_width, image_height, num_channels, image);
+  write_png_file("out.png", image_width, image_height, num_channels, image,
+                 write_row_progress_callback);
 
   for (size_t i = 0; i < image_height; i += 1) {
     free(image[i]);
