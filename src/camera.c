@@ -15,8 +15,7 @@ Point3 get_lower_left_corner(const Camera camera, double focal_length) {
   return llc;
 }
 
-Camera camera_new() {
-  const double aspect_ratio = 16.0 / 9.0;
+Camera camera_new(double aspect_ratio) {
   const double viewport_height = 2.0;
   const double viewport_width = aspect_ratio * viewport_height;
   const double focal_length = 1.0;

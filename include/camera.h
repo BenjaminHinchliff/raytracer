@@ -15,7 +15,7 @@ typedef struct Camera {
   Vec3 vertical;
 } Camera;
 
-Camera camera_new();
+Camera camera_new(double aspect_ratio);
 
 Ray camera_get_ray(const Camera *camera, double u, double v);
 

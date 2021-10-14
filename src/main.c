@@ -15,7 +15,7 @@
 #include "util.h"
 #include "vec3.h"
 
-const double aspect_ratio = 16.0 / 9.0;
+const double aspect_ratio = 3.0 / 2.0;
 const int image_width = 400;
 const int image_height = (int)(image_width / aspect_ratio);
 const int num_channels = 3;
@@ -23,38 +23,10 @@ const int samples_per_pixel = 100;
 const int max_depth = 50;
 
 void write_row_progress_callback(png_structp png_ptr, png_uint_32 row,
-                                 int pass) {
-  fprintf(stderr, "\rPng write rows remaining: %d ", image_height - row);
-}
+                                 int pass);
 
 Color ray_color(const Ray *ray, const Hittable *world, const size_t world_len,
-                int depth) {
-  if (depth == 0) {
-    return vec3_origin();
-  }
-
-  HitRecord rec;
-  bool hit =
-      hittable_hit_multiple(world, world_len, ray, 0.001, INFINITY, &rec);
-  if (hit) {
-    Ray scattered;
-    Color attenuation;
-    if (material_scatter(rec.material, ray, rec, &attenuation, &scattered)) {
-      Color color = ray_color(&scattered, world, world_len, depth - 1);
-      vec3_mul(&color, &attenuation);
-      return color;
-    }
-    return vec3_origin();
-  }
-
-  Vec3 unit_dir = ray->dir;
-  vec3_unit_vector(&unit_dir);
-  double t = 0.5 * (unit_dir.y + 1.0);
-  Color color = vec3_new(1.0, 1.0, 1.0);
-  Color target = vec3_new(0.5, 0.7, 1.0);
-  vec3_lerp(&color, &target, t);
-  return color;
-}
+                int depth);
 
 int main(int argc, char **argv) {
   const Hittable world[] = {{.type = HITTABLE_TYPE_sphere,
@@ -74,7 +46,7 @@ int main(int argc, char **argv) {
                              }}};
   const size_t world_len = sizeof(world) / sizeof(Hittable);
 
-  Camera camera = camera_new();
+  Camera camera = camera_new(aspect_ratio);
 
   png_bytepp image = malloc(sizeof(png_bytep) * image_height);
   for (size_t i = 0; i < image_height; i += 1) {
@@ -116,4 +88,38 @@ int main(int argc, char **argv) {
   fprintf(stderr, "\nDone!\n");
 
   return 0;
+}
+
+void write_row_progress_callback(png_structp png_ptr, png_uint_32 row,
+                                 int pass) {
+  fprintf(stderr, "\rPng write rows remaining: %d ", image_height - row);
+}
+
+Color ray_color(const Ray *ray, const Hittable *world, const size_t world_len,
+                int depth) {
+  if (depth == 0) {
+    return vec3_origin();
+  }
+
+  HitRecord rec;
+  bool hit =
+      hittable_hit_multiple(world, world_len, ray, 0.001, INFINITY, &rec);
+  if (hit) {
+    Ray scattered;
+    Color attenuation;
+    if (material_scatter(rec.material, ray, rec, &attenuation, &scattered)) {
+      Color color = ray_color(&scattered, world, world_len, depth - 1);
+      vec3_mul(&color, &attenuation);
+      return color;
+    }
+    return vec3_origin();
+  }
+
+  Vec3 unit_dir = ray->dir;
+  vec3_unit_vector(&unit_dir);
+  double t = 0.5 * (unit_dir.y + 1.0);
+  Color color = vec3_new(1.0, 1.0, 1.0);
+  Color target = vec3_new(0.5, 0.7, 1.0);
+  vec3_lerp(&color, &target, t);
+  return color;
 }
