@@ -13,11 +13,15 @@ bool scatter_lambertian(const Material *material, const Ray *ray,
                         const struct HitRecord rec, Color *attenuation,
                         Ray *scattered) {
   Vec3 scatter_direction = rec.normal;
-  Vec3 random_unit = vec3_random_unit_sphere();
+  Vec3 random_unit = vec3_random_in_unit_sphere();
   vec3_add(&scatter_direction, &random_unit);
+
+  if (vec3_near_zero(&scatter_direction)) {
+    scatter_direction = rec.normal;
+  }
+
   *scattered = ray_new(rec.p, scatter_direction);
   *attenuation = material->albedo;
-
   return true;
 }
 

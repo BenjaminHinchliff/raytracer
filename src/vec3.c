@@ -2,7 +2,6 @@
 #include "util.h"
 
 #include <math.h>
-#include <stdbool.h>
 
 Vec3 vec3_origin() { return vec3_new(0.0, 0.0, 0.0); }
 
@@ -88,4 +87,9 @@ Vec3 vec3_random_unit_sphere() {
   Vec3 v = vec3_random_in_unit_sphere();
   vec3_unit_vector(&v);
   return v;
+}
+
+bool vec3_near_zero(const Vec3 *v) {
+  const double s = 1e-8;
+  return fabs(v->x) < s && fabs(v->y) < s && fabs(v->z) < s;
 }

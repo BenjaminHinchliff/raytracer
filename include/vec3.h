@@ -1,6 +1,8 @@
 #ifndef VEC3_H
 #define VEC3_H
 
+#include <stdbool.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -38,6 +40,8 @@ Vec3 vec3_random();
 Vec3 vec3_random_range(double min, double max);
 Vec3 vec3_random_in_unit_sphere();
 Vec3 vec3_random_unit_sphere();
+
+bool vec3_near_zero(const Vec3 *v);
 
 #ifdef __cplusplus
 }
