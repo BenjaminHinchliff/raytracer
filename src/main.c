@@ -1,15 +1,14 @@
-#include "material.h"
 #include <math.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
-
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include <stb_image_write.h>
+#include <stdlib.h>
 
 #include "camera.h"
 #include "color.h"
 #include "hittable.h"
+#include "material.h"
+#include "png_write.h"
 #include "ray.h"
 #include "util.h"
 #include "vec3.h"
@@ -70,8 +69,10 @@ int main(int argc, char **argv) {
 
   Camera camera = camera_new();
 
-  uint8_t *image =
-      malloc(sizeof(uint8_t) * image_width * image_height * num_channels);
+  png_bytepp image = malloc(sizeof(png_bytep) * image_height);
+  for (size_t i = 0; i < image_height; i += 1) {
+    image[i] = malloc(sizeof(png_byte) * num_channels * image_width);
+  }
 
   for (int i = image_height - 1; i >= 0; i -= 1) {
     fprintf(stderr, "\rScanlines remaining: %d ", i);
@@ -89,15 +90,19 @@ int main(int argc, char **argv) {
       uint8_t r, g, b;
       vec3_to_color(&color, &r, &g, &b);
 
-      int offset = (image_width * (image_height - i - 1) + j) * num_channels;
-      image[offset] = r;
-      image[offset + 1] = g;
-      image[offset + 2] = b;
+      int y = image_height - i - 1;
+      int x = j * num_channels;
+      image[y][x] = r;
+      image[y][x + 1] = g;
+      image[y][x + 2] = b;
     }
   }
 
-  stbi_write_png("out.png", image_width, image_height, num_channels, image,
-                 image_width * num_channels);
+  write_png_file("out.png", image_width, image_height, num_channels, image);
+
+  for (size_t i = 0; i < image_height; i += 1) {
+    free(image[i]);
+  }
   free(image);
   fprintf(stderr, "\nDone!\n");
 
