@@ -9,5 +9,8 @@ Ray ray_new(Point3 orig, Vec3 dir) {
 }
 
 Point3 ray_at(Ray ray, double t) {
-  return vec3_add(ray.orig, vec3_mul_scalar(ray.dir, t));
+  Vec3 at = ray.dir;
+  vec3_mul_scalar(&at, t);
+  vec3_add(&at, &ray.orig);
+  return at;
 }

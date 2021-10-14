@@ -8,7 +8,9 @@
 bool material_scatter(const Material *material, const Ray ray,
                       const struct HitRecord rec, Color *attenuation,
                       Ray *scattered) {
-  Vec3 scatter_direction = vec3_add(rec.normal, vec3_random_unit_sphere());
+  Vec3 scatter_direction = rec.normal;
+  Vec3 random_unit = vec3_random_unit_sphere();
+  vec3_add(&scatter_direction, &random_unit);
   *scattered = ray_new(rec.p, scatter_direction);
   // TODO: make this less messy
   switch (material->type) {
