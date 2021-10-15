@@ -55,6 +55,15 @@ void vec3_lerp(Vec3 *u, const Vec3 *v, double t) {
   vec3_add(u, &cv);
 }
 
+void vec3_reflect(Vec3 *v, const Vec3 *n) {
+  Vec3 tmp = *n;
+  vec3_mul_scalar(&tmp, vec3_dot(v, n));
+  vec3_mul_scalar(&tmp, 2.0);
+  vec3_neg(&tmp);
+  vec3_add(&tmp, v);
+  *v = tmp;
+}
+
 double vec3_dot(const Vec3 *u, const Vec3 *v) {
   return u->x * v->x + u->y * v->y + u->z * v->z;
 }

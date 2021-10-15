@@ -15,7 +15,7 @@
 #include "util.h"
 #include "vec3.h"
 
-const double aspect_ratio = 3.0 / 2.0;
+const double aspect_ratio = 16.0 / 9.0;
 const int image_width = 400;
 const int image_height = (int)(image_width / aspect_ratio);
 const int num_channels = 3;
@@ -36,6 +36,22 @@ int main(int argc, char **argv) {
                                  {
                                      .type = MATERIAL_TYPE_lambertian,
                                      .albedo = vec3_new(0.7, 0.3, 0.3),
+                                 }},
+                            {.type = HITTABLE_TYPE_sphere,
+                             .center = vec3_new(-1.0, 0.0, -1.0),
+                             .radius = 0.5,
+                             .material =
+                                 {
+                                     .type = MATERIAL_TYPE_metal,
+                                     .albedo = vec3_new(0.8, 0.8, 0.8),
+                                 }},
+                            {.type = HITTABLE_TYPE_sphere,
+                             .center = vec3_new(1.0, 0.0, -1.0),
+                             .radius = 0.5,
+                             .material =
+                                 {
+                                     .type = MATERIAL_TYPE_metal,
+                                     .albedo = vec3_new(0.8, 0.6, 0.2),
                                  }},
                             {.type = HITTABLE_TYPE_sphere,
                              .center = vec3_new(0.0, -100.5, -1.0),

@@ -13,16 +13,13 @@ extern "C" {
 
 enum MATERIAL_TYPE {
   MATERIAL_TYPE_lambertian,
+  MATERIAL_TYPE_metal,
 };
 #define NUM_MATERIAL_TYPES (1)
 
 typedef struct Material {
   enum MATERIAL_TYPE type;
-  union {
-    struct {
-      Color albedo;
-    };
-  };
+  Color albedo;
 } Material;
 
 bool material_scatter(const Material *material, const Ray *ray,

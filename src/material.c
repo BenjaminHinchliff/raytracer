@@ -13,7 +13,7 @@ bool scatter_lambertian(const Material *material, const Ray *ray,
                         const struct HitRecord rec, Color *attenuation,
                         Ray *scattered) {
   Vec3 scatter_direction = rec.normal;
-  Vec3 random_unit = vec3_random_in_unit_sphere();
+  Vec3 random_unit = vec3_random_unit_sphere();
   vec3_add(&scatter_direction, &random_unit);
 
   if (vec3_near_zero(&scatter_direction)) {
@@ -25,6 +25,17 @@ bool scatter_lambertian(const Material *material, const Ray *ray,
   return true;
 }
 
+bool scatter_metal(const Material *material, const Ray *ray,
+                   const struct HitRecord rec, Color *attenuation,
+                   Ray *scattered) {
+  Vec3 reflected = ray->dir;
+  vec3_unit_vector(&reflected);
+  vec3_reflect(&reflected, &rec.normal);
+  *scattered = ray_new(rec.p, reflected);
+  *attenuation = material->albedo;
+  return vec3_dot(&scattered->dir, &rec.normal) > 0.0;
+}
+
 bool scatter_panic(const Material *material, const Ray *ray,
                    const struct HitRecord rec, Color *attenuation,
                    Ray *scattered) {
@@ -34,6 +45,7 @@ bool scatter_panic(const Material *material, const Ray *ray,
 
 scatter_fn get_scatter_action(enum MATERIAL_TYPE type) {
   return (type == MATERIAL_TYPE_lambertian) ? scatter_lambertian
+         : (type == MATERIAL_TYPE_metal)    ? scatter_metal
                                             : scatter_panic;
 }
 
