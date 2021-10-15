@@ -19,6 +19,11 @@ enum MATERIAL_TYPE {
 
 typedef struct Material {
   enum MATERIAL_TYPE type;
+  union {
+    struct { // type = metal
+      double fuzz;
+    };
+  };
   Color albedo;
 } Material;
 

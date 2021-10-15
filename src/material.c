@@ -31,6 +31,9 @@ bool scatter_metal(const Material *material, const Ray *ray,
   Vec3 reflected = ray->dir;
   vec3_unit_vector(&reflected);
   vec3_reflect(&reflected, &rec.normal);
+  Vec3 fuzz_vec = vec3_random_in_unit_sphere();
+  vec3_mul_scalar(&fuzz_vec, material->fuzz);
+  vec3_add(&reflected, &fuzz_vec);
   *scattered = ray_new(rec.p, reflected);
   *attenuation = material->albedo;
   return vec3_dot(&scattered->dir, &rec.normal) > 0.0;

@@ -44,6 +44,7 @@ int main(int argc, char **argv) {
                                  {
                                      .type = MATERIAL_TYPE_metal,
                                      .albedo = vec3_new(0.8, 0.8, 0.8),
+                                     .fuzz = 0.3,
                                  }},
                             {.type = HITTABLE_TYPE_sphere,
                              .center = vec3_new(1.0, 0.0, -1.0),
@@ -52,6 +53,7 @@ int main(int argc, char **argv) {
                                  {
                                      .type = MATERIAL_TYPE_metal,
                                      .albedo = vec3_new(0.8, 0.6, 0.2),
+                                     .fuzz = 1.0,
                                  }},
                             {.type = HITTABLE_TYPE_sphere,
                              .center = vec3_new(0.0, -100.5, -1.0),
