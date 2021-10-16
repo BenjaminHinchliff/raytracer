@@ -33,42 +33,51 @@ int main(int argc, char **argv) {
       .type = MATERIAL_TYPE_dielectric,
       .ir = 1.5,
   };
-  const Hittable world[] = {{
-                                .type = HITTABLE_TYPE_sphere,
-                                .center = vec3_new(-1.0, 0.0, -1.0),
-                                .radius = 0.5,
-                                .material = mat_left,
-                            },
-                            {
-                                .type = HITTABLE_TYPE_sphere,
-                                .center = vec3_new(-1.0, 0.0, -1.0),
-                                .radius = -0.4,
-                                .material = mat_left,
-                            },
-                            {.type = HITTABLE_TYPE_sphere,
-                             .center = vec3_new(0.0, 0.0, -1.0),
-                             .radius = 0.5,
-                             .material =
-                                 {
-                                     .type = MATERIAL_TYPE_lambertian,
-                                     .l_albedo = vec3_new(0.1, 0.2, 0.5),
-                                 }},
-                            {.type = HITTABLE_TYPE_sphere,
-                             .center = vec3_new(1.0, 0.0, -1.0),
-                             .radius = 0.5,
-                             .material =
-                                 {
-                                     .type = MATERIAL_TYPE_metal,
-                                     .m_albedo = vec3_new(0.8, 0.6, 0.2),
-                                     .fuzz = 0.3,
-                                 }},
-                            {.type = HITTABLE_TYPE_sphere,
-                             .center = vec3_new(0.0, -100.5, -1.0),
-                             .radius = 100,
-                             .material = {
-                                 .type = MATERIAL_TYPE_lambertian,
-                                 .l_albedo = vec3_new(0.8, 0.8, 0.0),
-                             }}};
+  const Hittable world[] = {
+      {
+          .type = HITTABLE_TYPE_sphere,
+          .center = vec3_new(-1.0, 0.0, -1.0),
+          .radius = 0.5,
+          .material = mat_left,
+      },
+      {
+          .type = HITTABLE_TYPE_sphere,
+          .center = vec3_new(-1.0, 0.0, -1.0),
+          .radius = -0.4,
+          .material = mat_left,
+      },
+      {
+          .type = HITTABLE_TYPE_sphere,
+          .center = vec3_new(0.0, 0.0, -1.0),
+          .radius = 0.5,
+          .material =
+              {
+                  .type = MATERIAL_TYPE_lambertian,
+                  .l_albedo = vec3_new(0.1, 0.2, 0.5),
+              },
+      },
+      {
+          .type = HITTABLE_TYPE_sphere,
+          .center = vec3_new(1.0, 0.0, -1.0),
+          .radius = 0.5,
+          .material =
+              {
+                  .type = MATERIAL_TYPE_metal,
+                  .m_albedo = vec3_new(0.8, 0.6, 0.2),
+                  .fuzz = 0.3,
+              },
+      },
+      {
+          .type = HITTABLE_TYPE_sphere,
+          .center = vec3_new(0.0, -100.5, -1.0),
+          .radius = 100,
+          .material =
+              {
+                  .type = MATERIAL_TYPE_lambertian,
+                  .l_albedo = vec3_new(0.8, 0.8, 0.0),
+              },
+      },
+  };
   const size_t world_len = sizeof(world) / sizeof(Hittable);
 
   Camera camera = camera_new(aspect_ratio);
