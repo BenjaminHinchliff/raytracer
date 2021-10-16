@@ -1,7 +1,9 @@
 #include "material.h"
 #include "ray.h"
+#include "util.h"
 #include "vec3.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -39,6 +41,12 @@ bool scatter_metal(const Material *material, const Ray *ray,
   return vec3_dot(&scattered->dir, &rec.normal) > 0.0;
 }
 
+static double reflectance(double cosine, double ref_idx) {
+  double r0 = (1 - ref_idx) / (1 + ref_idx);
+  r0 = r0 * r0;
+  return r0 + (1 - r0) * pow(1 - cosine, 5);
+}
+
 bool scatter_dielectric(const Material *material, const Ray *ray,
                         const struct HitRecord rec, Color *attenuation,
                         Ray *scattered) {
@@ -46,11 +54,25 @@ bool scatter_dielectric(const Material *material, const Ray *ray,
 
   double refrection_ratio = rec.front_face ? 1.0 / material->ir : material->ir;
 
-  Vec3 refracted = ray->dir;
-  vec3_unit_vector(&refracted);
-  vec3_refract(&refracted, &rec.normal, refrection_ratio);
+  Vec3 unit_dir = ray->dir;
+  vec3_unit_vector(&unit_dir);
 
-  *scattered = ray_new(rec.p, refracted);
+  Vec3 neg_unit_dir = unit_dir;
+  vec3_neg(&neg_unit_dir);
+  double cos_theta = fmin(vec3_dot(&neg_unit_dir, &rec.normal), 1.0);
+  double sin_theta = sqrt(1.0 - cos_theta * cos_theta);
+
+  bool cannot_refract = refrection_ratio * sin_theta > 1.0;
+  Vec3 refrac_dir = unit_dir;
+
+  if (cannot_refract ||
+      reflectance(cos_theta, refrection_ratio) > random_double()) {
+    vec3_reflect(&refrac_dir, &rec.normal);
+  } else {
+    vec3_refract(&refrac_dir, &rec.normal, refrection_ratio);
+  }
+
+  *scattered = ray_new(rec.p, refrac_dir);
   return true;
 }
 
