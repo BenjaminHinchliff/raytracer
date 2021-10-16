@@ -14,17 +14,24 @@ extern "C" {
 enum MATERIAL_TYPE {
   MATERIAL_TYPE_lambertian,
   MATERIAL_TYPE_metal,
+  MATERIAL_TYPE_dielectric,
 };
 #define NUM_MATERIAL_TYPES (1)
 
 typedef struct Material {
   enum MATERIAL_TYPE type;
   union {
+    struct { // type = lambertian
+      Color l_albedo;
+    };
     struct { // type = metal
+      Color m_albedo;
       double fuzz;
     };
+    struct { // type = dielectric
+      double ir;
+    };
   };
-  Color albedo;
 } Material;
 
 bool material_scatter(const Material *material, const Ray *ray,

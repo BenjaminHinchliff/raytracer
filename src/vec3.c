@@ -64,6 +64,21 @@ void vec3_reflect(Vec3 *v, const Vec3 *n) {
   *v = tmp;
 }
 
+void vec3_refract(Vec3 *uv, const Vec3 *n, double etai_over_etat) {
+  Vec3 nuv = *uv;
+  vec3_neg(&nuv);
+  double cos_theta = fmin(vec3_dot(&nuv, n), 1.0);
+  Vec3 r_out_perp = *n;
+  vec3_mul_scalar(&r_out_perp, cos_theta);
+  vec3_add(&r_out_perp, uv);
+  vec3_mul_scalar(&r_out_perp, etai_over_etat);
+  Vec3 r_out_parallel = *n;
+  vec3_mul_scalar(&r_out_parallel,
+                  -sqrt(fabs(1.0 - vec3_length_squared(&r_out_perp))));
+  vec3_add(&r_out_perp, &r_out_parallel);
+  *uv = r_out_perp;
+}
+
 double vec3_dot(const Vec3 *u, const Vec3 *v) {
   return u->x * v->x + u->y * v->y + u->z * v->z;
 }

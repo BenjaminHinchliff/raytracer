@@ -32,6 +32,7 @@ void vec3_div_scalar(Vec3 *v, double t);
 
 void vec3_lerp(Vec3 *u, const Vec3 *v, double t);
 void vec3_reflect(Vec3 *v, const Vec3 *n);
+void vec3_refract(Vec3 *uv, const Vec3 *n, double etai_over_etat);
 
 double vec3_dot(const Vec3 *u, const Vec3 *v);
 double vec3_length(const Vec3 *v);

@@ -34,17 +34,16 @@ int main(int argc, char **argv) {
                              .radius = 0.5,
                              .material =
                                  {
-                                     .type = MATERIAL_TYPE_lambertian,
-                                     .albedo = vec3_new(0.7, 0.3, 0.3),
+                                     .type = MATERIAL_TYPE_dielectric,
+                                     .ir = 1.5,
                                  }},
                             {.type = HITTABLE_TYPE_sphere,
                              .center = vec3_new(-1.0, 0.0, -1.0),
                              .radius = 0.5,
                              .material =
                                  {
-                                     .type = MATERIAL_TYPE_metal,
-                                     .albedo = vec3_new(0.8, 0.8, 0.8),
-                                     .fuzz = 0.3,
+                                     .type = MATERIAL_TYPE_dielectric,
+                                     .ir = 1.5,
                                  }},
                             {.type = HITTABLE_TYPE_sphere,
                              .center = vec3_new(1.0, 0.0, -1.0),
@@ -52,7 +51,7 @@ int main(int argc, char **argv) {
                              .material =
                                  {
                                      .type = MATERIAL_TYPE_metal,
-                                     .albedo = vec3_new(0.8, 0.6, 0.2),
+                                     .m_albedo = vec3_new(0.8, 0.6, 0.2),
                                      .fuzz = 1.0,
                                  }},
                             {.type = HITTABLE_TYPE_sphere,
@@ -60,7 +59,7 @@ int main(int argc, char **argv) {
                              .radius = 100,
                              .material = {
                                  .type = MATERIAL_TYPE_lambertian,
-                                 .albedo = vec3_new(0.8, 0.8, 0.0),
+                                 .l_albedo = vec3_new(0.8, 0.8, 0.0),
                              }}};
   const size_t world_len = sizeof(world) / sizeof(Hittable);
 

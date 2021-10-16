@@ -21,7 +21,7 @@ bool scatter_lambertian(const Material *material, const Ray *ray,
   }
 
   *scattered = ray_new(rec.p, scatter_direction);
-  *attenuation = material->albedo;
+  *attenuation = material->m_albedo;
   return true;
 }
 
@@ -35,8 +35,23 @@ bool scatter_metal(const Material *material, const Ray *ray,
   vec3_mul_scalar(&fuzz_vec, material->fuzz);
   vec3_add(&reflected, &fuzz_vec);
   *scattered = ray_new(rec.p, reflected);
-  *attenuation = material->albedo;
+  *attenuation = material->m_albedo;
   return vec3_dot(&scattered->dir, &rec.normal) > 0.0;
+}
+
+bool scatter_dielectric(const Material *material, const Ray *ray,
+                        const struct HitRecord rec, Color *attenuation,
+                        Ray *scattered) {
+  *attenuation = vec3_new(1.0, 1.0, 1.0);
+
+  double refrection_ratio = rec.front_face ? 1.0 / material->ir : material->ir;
+
+  Vec3 refracted = ray->dir;
+  vec3_unit_vector(&refracted);
+  vec3_refract(&refracted, &rec.normal, refrection_ratio);
+
+  *scattered = ray_new(rec.p, refracted);
+  return true;
 }
 
 bool scatter_panic(const Material *material, const Ray *ray,
@@ -47,9 +62,10 @@ bool scatter_panic(const Material *material, const Ray *ray,
 }
 
 scatter_fn get_scatter_action(enum MATERIAL_TYPE type) {
-  return (type == MATERIAL_TYPE_lambertian) ? scatter_lambertian
-         : (type == MATERIAL_TYPE_metal)    ? scatter_metal
-                                            : scatter_panic;
+  return (type == MATERIAL_TYPE_lambertian)   ? scatter_lambertian
+         : (type == MATERIAL_TYPE_metal)      ? scatter_metal
+         : (type == MATERIAL_TYPE_dielectric) ? scatter_dielectric
+                                              : scatter_panic;
 }
 
 bool material_scatter(const Material *material, const Ray *ray,
