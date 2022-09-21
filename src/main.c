@@ -1,9 +1,3 @@
-#include <math.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "camera.h"
 #include "color.h"
 #include "hittable.h"
@@ -15,66 +9,73 @@
 #include "util.h"
 #include "vec3.h"
 
+#include <cglm/vec4.h>
+#include <math.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 const double aspect_ratio = 16.0 / 9.0;
 const int image_width = 400;
 const int image_height = (int)(image_width / aspect_ratio);
 const int num_channels = 3;
 const int samples_per_pixel = 100;
-const int max_depth = 50;
+const int max_depth = 20;
 
 void write_row_progress_callback(png_structp png_ptr, png_uint_32 row,
                                  int pass);
 
-Color ray_color(const Ray *ray, const Hittable *world, const size_t world_len,
-                int depth);
+void ray_color(Ray ray, Hittable world[], const size_t world_len, int depth,
+               color color_out);
 
-int main(int argc, char **argv) {
-  const Material mat_left = {
-      .type = MATERIAL_TYPE_dielectric,
-      .ir = 1.5,
-  };
-  const Hittable world[] = {
+int main(void) {
+  // const Material mat_left = {
+  //     .type = MATERIAL_TYPE_dielectric,
+  //     .ir = 1.5,
+  // };
+  Hittable world[] = {
+      // {
+      //     .type = HITTABLE_TYPE_sphere,
+      //     .center = {-1.0, 0.0, -1.0, 0.0},
+      //     .radius = 0.5,
+      //     .material = mat_left,
+      // },
+      // {
+      //     .type = HITTABLE_TYPE_sphere,
+      //     .center = {-1.0, 0.0, -1.0, 0.0},
+      //     .radius = -0.4,
+      //     .material = mat_left,
+      // },
       {
           .type = HITTABLE_TYPE_sphere,
-          .center = vec3_new(-1.0, 0.0, -1.0),
-          .radius = 0.5,
-          .material = mat_left,
-      },
-      {
-          .type = HITTABLE_TYPE_sphere,
-          .center = vec3_new(-1.0, 0.0, -1.0),
-          .radius = -0.4,
-          .material = mat_left,
-      },
-      {
-          .type = HITTABLE_TYPE_sphere,
-          .center = vec3_new(0.0, 0.0, -1.0),
+          .center = {0.0, 0.0, -1.0, 0.0},
           .radius = 0.5,
           .material =
               {
                   .type = MATERIAL_TYPE_lambertian,
-                  .l_albedo = vec3_new(0.1, 0.2, 0.5),
+                  .l_albedo = {0.1, 0.2, 0.5, 1.0},
               },
       },
+      // {
+      //     .type = HITTABLE_TYPE_sphere,
+      //     .center = {1.0, 0.0, -1.0, 0.0},
+      //     .radius = 0.5,
+      //     .material =
+      //         {
+      //             .type = MATERIAL_TYPE_metal,
+      //             .m_albedo = {0.8, 0.6, 0.2, 1.0},
+      //             .fuzz = 0.3,
+      //         },
+      // },
       {
           .type = HITTABLE_TYPE_sphere,
-          .center = vec3_new(1.0, 0.0, -1.0),
-          .radius = 0.5,
-          .material =
-              {
-                  .type = MATERIAL_TYPE_metal,
-                  .m_albedo = vec3_new(0.8, 0.6, 0.2),
-                  .fuzz = 0.3,
-              },
-      },
-      {
-          .type = HITTABLE_TYPE_sphere,
-          .center = vec3_new(0.0, -100.5, -1.0),
+          .center = {0.0, -100.5, -1.0, 0.0},
           .radius = 100,
           .material =
               {
                   .type = MATERIAL_TYPE_lambertian,
-                  .l_albedo = vec3_new(0.8, 0.8, 0.0),
+                  .l_albedo = {0.8, 0.8, 0.0, 1.0},
               },
       },
   };
@@ -83,25 +84,26 @@ int main(int argc, char **argv) {
   Camera camera = camera_new(aspect_ratio);
 
   png_bytepp image = malloc(sizeof(png_bytep) * image_height);
-  for (size_t i = 0; i < image_height; i += 1) {
+  for (int i = 0; i < image_height; i += 1) {
     image[i] = malloc(sizeof(png_byte) * num_channels * image_width);
   }
 
   for (int i = image_height - 1; i >= 0; i -= 1) {
     fprintf(stderr, "\rScanlines remaining: %d ", i);
     for (int j = 0; j < image_width; j += 1) {
-      Color color = vec3_origin();
+      color sample = GLM_VEC4_ZERO_INIT;
       for (int s = 0; s < samples_per_pixel; s += 1) {
-        double u = ((double)j + random_double()) / (double)(image_width - 1);
-        double v = ((double)i + random_double()) / (double)(image_height - 1);
-        Ray ray = camera_get_ray(&camera, u, v);
-        Color next_color = ray_color(&ray, world, world_len, max_depth);
-        vec3_add(&color, &next_color);
+        float u = ((float)j + random_float()) / (float)(image_width - 1);
+        float v = ((float)i + random_float()) / (float)(image_height - 1);
+        Ray ray = camera_get_ray(camera, u, v);
+        color next_color;
+        ray_color(ray, world, world_len, max_depth, next_color);
+        glm_vec4_add(sample, next_color, sample);
       }
-      vec3_div_scalar(&color, samples_per_pixel);
+      glm_vec4_divs(sample, samples_per_pixel, sample);
 
       uint8_t r, g, b;
-      vec3_to_color(&color, &r, &g, &b);
+      vec4_to_color(sample, &r, &g, &b);
 
       int y = image_height - i - 1;
       int x = j * num_channels;
@@ -115,7 +117,7 @@ int main(int argc, char **argv) {
   write_png_file("out.png", image_width, image_height, num_channels, image,
                  write_row_progress_callback);
 
-  for (size_t i = 0; i < image_height; i += 1) {
+  for (int i = 0; i < image_height; i += 1) {
     free(image[i]);
   }
   free(image);
@@ -126,13 +128,15 @@ int main(int argc, char **argv) {
 
 void write_row_progress_callback(png_structp png_ptr, png_uint_32 row,
                                  int pass) {
+  (void)png_ptr, (void)pass;
   fprintf(stderr, "\rPng write rows remaining: %d ", image_height - row);
 }
 
-Color ray_color(const Ray *ray, const Hittable *world, const size_t world_len,
-                int depth) {
+void ray_color(Ray ray, Hittable world[], const size_t world_len, int depth,
+               color color_out) {
   if (depth == 0) {
-    return vec3_origin();
+    glm_vec4_zero(color_out);
+    return;
   }
 
   HitRecord rec;
@@ -140,20 +144,23 @@ Color ray_color(const Ray *ray, const Hittable *world, const size_t world_len,
       hittable_hit_multiple(world, world_len, ray, 0.001, INFINITY, &rec);
   if (hit) {
     Ray scattered;
-    Color attenuation;
-    if (material_scatter(rec.material, ray, rec, &attenuation, &scattered)) {
-      Color color = ray_color(&scattered, world, world_len, depth - 1);
-      vec3_mul(&color, &attenuation);
-      return color;
+    color attenuation;
+    if (material_scatter(rec.material, ray, rec, attenuation, &scattered)) {
+      color color;
+      ray_color(scattered, world, world_len, depth - 1, color);
+      glm_vec4_mul(color, attenuation, color);
+      glm_vec4_copy(color, color_out);
+      return;
     }
-    return vec3_origin();
+    glm_vec4_zero(color_out);
+    return;
   }
 
-  Vec3 unit_dir = ray->dir;
-  vec3_unit_vector(&unit_dir);
-  double t = 0.5 * (unit_dir.y + 1.0);
-  Color color = vec3_new(1.0, 1.0, 1.0);
-  Color target = vec3_new(0.5, 0.7, 1.0);
-  vec3_lerp(&color, &target, t);
-  return color;
+  vec4 unit_dir;
+  glm_vec4_normalize_to(ray.dir, unit_dir);
+  double t = 0.5 * (unit_dir[1] + 1.0);
+  color bg1 = {1.0, 1.0, 1.0, 1.0};
+  color bg2 = {0.5, 0.7, 1.0, 1.0};
+  glm_vec4_lerp(bg1, bg2, t, color_out);
+  return;
 }

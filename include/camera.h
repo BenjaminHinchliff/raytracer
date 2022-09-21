@@ -2,22 +2,23 @@
 #define CAMERA_H
 
 #include "ray.h"
-#include "vec3.h"
+
+#include <cglm/vec3.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 typedef struct Camera {
-  Point3 origin;
-  Point3 lower_left_corner;
-  Vec3 horizontal;
-  Vec3 vertical;
+  vec4 origin;
+  vec4 lower_left_corner;
+  vec4 horizontal;
+  vec4 vertical;
 } Camera;
 
 Camera camera_new(double aspect_ratio);
 
-Ray camera_get_ray(const Camera *camera, double u, double v);
+Ray camera_get_ray(Camera camera, double u, double v);
 
 #ifdef __cplusplus
 }

@@ -7,12 +7,12 @@ srcs = files([
   'png_write.c',
   'ray.c',
   'util.c',
-  'vec3.c'
+  # 'vec3.c'
 ])
 
 ctracerexe = executable(
   'ctracer',
   srcs,
   include_directories : inc,
-  dependencies : [m_dep, libpng_dep]
+  dependencies : [m_dep, libpng_dep, cglm_dep],
 )

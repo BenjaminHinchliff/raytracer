@@ -1,20 +1,21 @@
 #ifndef RAY_H
 #define RAY_H
 
+#include <cglm/types.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "vec3.h"
+#include <cglm/vec3.h>
 
 typedef struct Ray {
-  Point3 orig;
-  Vec3 dir;
+  vec4 orig;
+  vec4 dir;
 } Ray;
 
-Ray ray_new(Point3 orig, Vec3 dir);
+Ray ray_new(vec4 orig, vec4 dir);
 
-Point3 ray_at(const Ray *ray, double t);
+void ray_at(Ray ray, double t, vec4 at);
 
 #ifdef __cplusplus
 }

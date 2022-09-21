@@ -4,10 +4,10 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "hit_record.h"
 #include "material.h"
 #include "ray.h"
-#include "vec3.h"
+
+#include <cglm/vec4.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,25 +16,24 @@ extern "C" {
 enum HITTABLE_TYPE {
   HITTABLE_TYPE_sphere,
 };
-#define NUM_HITTABLE_TYPES (1)
+#define NUM_HITTABLE_TYPES 1
 
 typedef struct Hittable {
   enum HITTABLE_TYPE type;
   union {
     struct { // type = sphere
-      Point3 center;
+      vec4 center;
       double radius;
       Material material;
     };
   };
 } Hittable;
 
-bool hittable_hit(const Hittable *sphere, const Ray *ray, double t_min,
-                  double t_max, HitRecord *rec);
+bool hittable_hit(Hittable hittable, Ray ray, double t_min, double t_max,
+                  HitRecord *rec);
 
-bool hittable_hit_multiple(const Hittable *hittables, size_t num,
-                           const Ray *ray, double t_min, double t_max,
-                           HitRecord *rec);
+bool hittable_hit_multiple(Hittable *hittables, size_t num, Ray ray,
+                           double t_min, double t_max, HitRecord *rec);
 
 #ifdef __cplusplus
 }

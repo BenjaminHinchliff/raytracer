@@ -4,7 +4,6 @@
 #include <stdbool.h>
 
 #include "color.h"
-#include "hit_record.h"
 #include "ray.h"
 
 #ifdef __cplusplus
@@ -22,10 +21,10 @@ typedef struct Material {
   enum MATERIAL_TYPE type;
   union {
     struct { // type = lambertian
-      Color l_albedo;
+      color l_albedo;
     };
     struct { // type = metal
-      Color m_albedo;
+      color m_albedo;
       double fuzz;
     };
     struct { // type = dielectric
@@ -34,9 +33,16 @@ typedef struct Material {
   };
 } Material;
 
-bool material_scatter(const Material *material, const Ray *ray,
-                      const struct HitRecord rec, Color *attenuation,
-                      Ray *scattered);
+typedef struct HitRecord {
+  vec4 p;
+  vec4 normal;
+  Material material;
+  double t;
+  bool front_face;
+} HitRecord;
+
+bool material_scatter(Material material, Ray ray, const struct HitRecord rec,
+                      color attenuation, Ray *scattered);
 
 #ifdef __cplusplus
 }

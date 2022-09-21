@@ -1,33 +1,28 @@
 #include "hittable.h"
 #include "ray.h"
-#include "vec3.h"
 
+#include <cglm/vec4.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-void hit_record_set_face_normal(HitRecord *hit_record, const Ray *ray,
-                                Vec3 outward_normal) {
-  hit_record->front_face = vec3_dot(&ray->dir, &outward_normal) < 0.0;
-  if (!hit_record->front_face) {
-    vec3_neg(&outward_normal);
+void hit_record_set_face_normal(HitRecord *rec, Ray ray) {
+  rec->front_face = glm_vec4_dot(ray.dir, rec->normal) < 0.0;
+  if (!rec->front_face) {
+    glm_vec4_negate(rec->normal);
   }
-  hit_record->normal = outward_normal;
 }
 
-typedef bool (*hittable_fn)(const Hittable *sphere, const Ray *ray,
-                            double t_min, double t_max, HitRecord *rec);
-
-bool hittable_hit_sphere(const Hittable *sphere, const Ray *ray, double t_min,
-                         double t_max, HitRecord *rec) {
-  Vec3 oc = ray->orig;
-  vec3_sub(&oc, &sphere->center);
-  double a = vec3_length_squared(&ray->dir);
-  double half_b = vec3_dot(&oc, &ray->dir);
-  double c = vec3_length_squared(&oc) - sphere->radius * sphere->radius;
+bool hittable_hit_sphere(Hittable sphere, Ray ray, double t_min, double t_max,
+                         HitRecord *rec) {
+  vec4 oc;
+  glm_vec4_sub(ray.orig, sphere.center, oc);
+  double a = glm_vec4_norm2(ray.dir);
+  double half_b = glm_vec4_dot(oc, ray.dir);
+  double c = glm_vec4_norm2(oc) - sphere.radius * sphere.radius;
 
   double discriminant = half_b * half_b - a * c;
-  if (discriminant < 0) {
+  if (discriminant < 0.0) {
     return false;
   }
 
@@ -42,41 +37,35 @@ bool hittable_hit_sphere(const Hittable *sphere, const Ray *ray, double t_min,
   }
 
   rec->t = root;
-  rec->p = ray_at(ray, rec->t);
-  Vec3 outward_normal = rec->p;
-  vec3_sub(&outward_normal, &sphere->center);
-  vec3_div_scalar(&outward_normal, sphere->radius);
-  hit_record_set_face_normal(rec, ray, outward_normal);
+  ray_at(ray, rec->t, rec->p);
+  glm_vec4_sub(rec->p, sphere.center, rec->normal);
+  glm_vec4_divs(rec->normal, sphere.radius, rec->normal);
+  hit_record_set_face_normal(rec, ray);
 
-  rec->material = &sphere->material;
+  rec->material = sphere.material;
   return true;
 }
 
-bool hittable_hit_panic(const Hittable *sphere, const Ray *ray, double t_min,
-                        double t_max, HitRecord *rec) {
-  fprintf(stderr, "ILLEGAL TYPE CALL IN get_hittable_action\n");
-  exit(1);
+bool hittable_hit(Hittable hittable, Ray ray, double t_min, double t_max,
+                  HitRecord *rec) {
+  switch (hittable.type) {
+  case HITTABLE_TYPE_sphere:
+    return hittable_hit_sphere(hittable, ray, t_min, t_max, rec);
+    break;
+  default:
+    fprintf(stderr, "ILLEGAL TYPE CALL IN get_hittable_action\n");
+    exit(1);
+  }
 }
 
-hittable_fn get_hittable_action(enum HITTABLE_TYPE type) {
-  return (type == HITTABLE_TYPE_sphere) ? hittable_hit_sphere
-                                        : hittable_hit_panic;
-}
-
-bool hittable_hit(const Hittable *hittable, const Ray *ray, double t_min,
-                  double t_max, HitRecord *rec) {
-  return get_hittable_action(hittable->type)(hittable, ray, t_min, t_max, rec);
-}
-
-bool hittable_hit_multiple(const Hittable *hittables, size_t num,
-                           const Ray *ray, double t_min, double t_max,
-                           HitRecord *rec) {
+bool hittable_hit_multiple(Hittable *hittables, size_t num, Ray ray,
+                           double t_min, double t_max, HitRecord *rec) {
   HitRecord tmp_rec;
   bool hit = false;
   double closest = t_max;
 
-  for (size_t i = 0; i < num; i += 1) {
-    if (hittable_hit(&hittables[i], ray, t_min, closest, &tmp_rec)) {
+  for (size_t i = 0; i < num; i++) {
+    if (hittable_hit(hittables[i], ray, t_min, closest, &tmp_rec)) {
       hit = true;
       closest = tmp_rec.t;
       *rec = tmp_rec;

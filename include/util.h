@@ -11,12 +11,12 @@ extern "C" {
 #define M_PI 3.1415926535897932385
 #endif
 
-double degrees_to_radians(double degrees);
+float degrees_to_radians(float degrees);
 
-double random_double();
-double random_double_range(double min, double max);
+float random_float();
+float random_float_range(float min, float max);
 
-double clamp(double v, double min, double max);
+float clamp(float v, float min, float max);
 
 #ifdef __cplusplus
 }
