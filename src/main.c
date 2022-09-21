@@ -17,19 +17,20 @@
 #include <stdlib.h>
 
 const double aspect_ratio = 16.0 / 9.0;
-const int image_width = 400;
+const int image_width = 1920;
 const int image_height = (int)(image_width / aspect_ratio);
 const int num_channels = 3;
-const int samples_per_pixel = 100;
+const int samples_per_pixel = 32;
 const int max_depth = 20;
 
 void write_row_progress_callback(png_structp png_ptr, png_uint_32 row,
                                  int pass);
 
 void ray_color(Ray ray, Hittable world[], const size_t world_len, int depth,
-               color color_out);
+               uint32_t *state, color color_out);
 
 int main(void) {
+  srand(time(NULL));
   // const Material mat_left = {
   //     .type = MATERIAL_TYPE_dielectric,
   //     .ir = 1.5,
@@ -88,16 +89,19 @@ int main(void) {
     image[i] = malloc(sizeof(png_byte) * num_channels * image_width);
   }
 
+  uint32_t rng_state = rand();
   for (int i = image_height - 1; i >= 0; i -= 1) {
     fprintf(stderr, "\rScanlines remaining: %d ", i);
     for (int j = 0; j < image_width; j += 1) {
       color sample = GLM_VEC4_ZERO_INIT;
       for (int s = 0; s < samples_per_pixel; s += 1) {
-        float u = ((float)j + random_float()) / (float)(image_width - 1);
-        float v = ((float)i + random_float()) / (float)(image_height - 1);
+        float u =
+            ((float)j + random_float(&rng_state)) / (float)(image_width - 1);
+        float v =
+            ((float)i + random_float(&rng_state)) / (float)(image_height - 1);
         Ray ray = camera_get_ray(camera, u, v);
         color next_color;
-        ray_color(ray, world, world_len, max_depth, next_color);
+        ray_color(ray, world, world_len, max_depth, &rng_state, next_color);
         glm_vec4_add(sample, next_color, sample);
       }
       glm_vec4_divs(sample, samples_per_pixel, sample);
@@ -129,11 +133,14 @@ int main(void) {
 void write_row_progress_callback(png_structp png_ptr, png_uint_32 row,
                                  int pass) {
   (void)png_ptr, (void)pass;
-  fprintf(stderr, "\rPng write rows remaining: %d ", image_height - row);
+  // avoid extra unneeded printing
+  if (row % 100 == 0) {
+    fprintf(stderr, "\rPng write rows remaining: %d ", image_height - row);
+  }
 }
 
 void ray_color(Ray ray, Hittable world[], const size_t world_len, int depth,
-               color color_out) {
+               uint32_t *state, color color_out) {
   if (depth == 0) {
     glm_vec4_zero(color_out);
     return;
@@ -145,9 +152,10 @@ void ray_color(Ray ray, Hittable world[], const size_t world_len, int depth,
   if (hit) {
     Ray scattered;
     color attenuation;
-    if (material_scatter(rec.material, ray, rec, attenuation, &scattered)) {
+    if (material_scatter(rec.material, ray, rec, state, attenuation,
+                         &scattered)) {
       color color;
-      ray_color(scattered, world, world_len, depth - 1, color);
+      ray_color(scattered, world, world_len, depth - 1, state, color);
       glm_vec4_mul(color, attenuation, color);
       glm_vec4_copy(color, color_out);
       return;

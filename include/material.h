@@ -42,7 +42,7 @@ typedef struct HitRecord {
 } HitRecord;
 
 bool material_scatter(Material material, Ray ray, const struct HitRecord rec,
-                      color attenuation, Ray *scattered);
+                      uint32_t *state, color attenuation, Ray *scattered);
 
 #ifdef __cplusplus
 }

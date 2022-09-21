@@ -7,26 +7,32 @@
 #include <cglm/vec4.h>
 #include <math.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-void random_unit_sphere(vec4 out) {
+void random_vec4(uint32_t *state, vec4 out) {
+  vec4 v = {random_float_range(state, -1.0, 1.0),
+            random_float_range(state, -1.0, 1.0),
+            random_float_range(state, -1.0, 1.0), 0.0};
+  glm_vec4_copy(v, out);
+}
+
+void random_unit_sphere(uint32_t *state, vec4 v) {
   while (true) {
-    vec4 v = {random_float_range(-1.0, 1.0), random_float_range(-1.0, 1.0),
-              random_float_range(-1.0, 1.0), 0.0};
+    random_vec4(state, v);
     if (glm_vec4_norm2(v) < 1.0) {
-      glm_vec4_copy(v, out);
       return;
     }
   }
 }
 
 bool scatter_lambertian(Material material, Ray ray, struct HitRecord rec,
-                        color attenuation, Ray *scattered) {
+                        uint32_t *state, color attenuation, Ray *scattered) {
   (void)ray;
   vec4 scatter_direction;
   vec4 ray_in_sphere;
-  random_unit_sphere(ray_in_sphere);
+  random_unit_sphere(state, ray_in_sphere);
   glm_vec4_add(rec.normal, ray_in_sphere, scatter_direction);
 
   if (glm_vec4_eq_eps(scatter_direction, 0.0)) {
@@ -89,10 +95,10 @@ bool scatter_lambertian(Material material, Ray ray, struct HitRecord rec,
 // }
 
 bool material_scatter(Material material, Ray ray, const struct HitRecord rec,
-                      color attenuation, Ray *scattered) {
+                      uint32_t *state, color attenuation, Ray *scattered) {
   switch (material.type) {
   case MATERIAL_TYPE_lambertian:
-    scatter_lambertian(material, ray, rec, attenuation, scattered);
+    scatter_lambertian(material, ray, rec, state, attenuation, scattered);
     break;
   case MATERIAL_TYPE_metal:
     // scatter_metal(material, ray, rec, attenuation, scattered);
