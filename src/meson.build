@@ -7,12 +7,13 @@ srcs = files([
   'png_write.c',
   'ray.c',
   'util.c',
-  # 'vec3.c'
+  'image.c',
+  # 'work_queue.c',
 ])
 
 ctracerexe = executable(
   'ctracer',
   srcs,
   include_directories : inc,
-  dependencies : [m_dep, libpng_dep, cglm_dep],
+  dependencies : [m_dep, threads_dep, libpng_dep, cglm_dep],
 )

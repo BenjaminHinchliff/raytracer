@@ -5,9 +5,7 @@
 #include <stdio.h>
 
 bool write_png_file(const char *filename, int width, int height,
-                    int num_channels, png_bytepp rows,
-                    png_write_status_ptr callback) {
-  (void)num_channels;
+                    png_bytepp rows, png_write_status_ptr callback) {
   FILE *fp = fopen(filename, "wb");
   if (!fp) {
     return false;

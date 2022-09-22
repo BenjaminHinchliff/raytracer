@@ -1,8 +1,8 @@
 #include "camera.h"
 #include "color.h"
 #include "hittable.h"
+#include "image.h"
 #include "material.h"
-#include "png.h"
 #include "png_write.h"
 #include "pngconf.h"
 #include "ray.h"
@@ -17,7 +17,7 @@
 #include <stdlib.h>
 
 const double aspect_ratio = 16.0 / 9.0;
-const int image_width = 1920;
+const int image_width = 640;
 const int image_height = (int)(image_width / aspect_ratio);
 const int num_channels = 3;
 const int samples_per_pixel = 32;
@@ -84,10 +84,7 @@ int main(void) {
 
   Camera camera = camera_new(aspect_ratio);
 
-  png_bytepp image = malloc(sizeof(png_bytep) * image_height);
-  for (int i = 0; i < image_height; i += 1) {
-    image[i] = malloc(sizeof(png_byte) * num_channels * image_width);
-  }
+  Image *image = image_new(image_width, image_height);
 
   uint32_t rng_state = rand();
   for (int i = image_height - 1; i >= 0; i -= 1) {
@@ -110,23 +107,15 @@ int main(void) {
       vec4_to_color(sample, &r, &g, &b);
 
       int y = image_height - i - 1;
-      int x = j * num_channels;
-      image[y][x] = r;
-      image[y][x + 1] = g;
-      image[y][x + 2] = b;
+      image_set_pixel(image, j, y, r, g, b);
     }
   }
   fprintf(stderr, "\n");
 
-  write_png_file("out.png", image_width, image_height, num_channels, image,
-                 write_row_progress_callback);
-
-  for (int i = 0; i < image_height; i += 1) {
-    free(image[i]);
-  }
-  free(image);
+  image_write_png(image, "traced.png", write_row_progress_callback);
   fprintf(stderr, "\nDone!\n");
 
+  image_free(image);
   return 0;
 }
 
