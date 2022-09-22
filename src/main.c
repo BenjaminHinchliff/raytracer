@@ -8,6 +8,8 @@
 #include "ray.h"
 #include "util.h"
 #include "vec3.h"
+#include "work_queue.h"
+#include "world.h"
 
 #include <cglm/vec4.h>
 #include <math.h>
@@ -15,27 +17,34 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
+#if !defined(WIN32) && !defined(_WIN32) && !defined(__WIN32) ||                \
+    defined(__CYGWIN__)
+#include <unistd.h>
+#endif
 
 const double aspect_ratio = 16.0 / 9.0;
-const int image_width = 640;
+const int image_width = 4096;
 const int image_height = (int)(image_width / aspect_ratio);
-const int num_channels = 3;
 const int samples_per_pixel = 32;
 const int max_depth = 20;
 
 void write_row_progress_callback(png_structp png_ptr, png_uint_32 row,
                                  int pass);
-
-void ray_color(Ray ray, Hittable world[], const size_t world_len, int depth,
-               uint32_t *state, color color_out);
+void trace_ray(Ray ray, World world, int depth, uint32_t *state,
+               color color_out);
+double time_as_double(void);
 
 int main(void) {
   srand(time(NULL));
+
+  Camera camera = camera_new(aspect_ratio);
+
   // const Material mat_left = {
   //     .type = MATERIAL_TYPE_dielectric,
   //     .ir = 1.5,
   // };
-  Hittable world[] = {
+  Hittable objects[] = {
       // {
       //     .type = HITTABLE_TYPE_sphere,
       //     .center = {-1.0, 0.0, -1.0, 0.0},
@@ -80,41 +89,44 @@ int main(void) {
               },
       },
   };
-  const size_t world_len = sizeof(world) / sizeof(Hittable);
-
-  Camera camera = camera_new(aspect_ratio);
+  size_t num_objects = sizeof(objects) / sizeof(Hittable);
+  World world = {
+      .camera = camera,
+      .objects = objects,
+      .num_objects = num_objects,
+  };
 
   Image *image = image_new(image_width, image_height);
 
-  uint32_t rng_state = rand();
-  for (int i = image_height - 1; i >= 0; i -= 1) {
-    fprintf(stderr, "\rScanlines remaining: %d ", i);
-    for (int j = 0; j < image_width; j += 1) {
-      color sample = GLM_VEC4_ZERO_INIT;
-      for (int s = 0; s < samples_per_pixel; s += 1) {
-        float u =
-            ((float)j + random_float(&rng_state)) / (float)(image_width - 1);
-        float v =
-            ((float)i + random_float(&rng_state)) / (float)(image_height - 1);
-        Ray ray = camera_get_ray(camera, u, v);
-        color next_color;
-        ray_color(ray, world, world_len, max_depth, &rng_state, next_color);
-        glm_vec4_add(sample, next_color, sample);
-      }
-      glm_vec4_divs(sample, samples_per_pixel, sample);
+  // uint32_t rng_state = rand();
 
-      uint8_t r, g, b;
-      vec4_to_color(sample, &r, &g, &b);
+  WorkQueue *work_queue = work_queue_new(image->height);
+  for (int row = 0; row < image->height; row++) {
+    WorkOrder order = (WorkOrder){
+        .image = image,
+        .world = &world,
+        .start_row_index = row,
+        .end_row_index = row + 1,
+        .samples = samples_per_pixel,
+        .max_depth = max_depth,
+    };
 
-      int y = image_height - i - 1;
-      image_set_pixel(image, j, y, r, g, b);
-    }
+    work_queue_add(work_queue, order);
   }
+
+  double start_time = time_as_double();
+
+  work_queue_run(work_queue);
+
+  double end_time = time_as_double();
   fprintf(stderr, "\n");
 
   image_write_png(image, "traced.png", write_row_progress_callback);
-  fprintf(stderr, "\nDone!\n");
 
+  fprintf(stderr, "\nDone!\n");
+  fprintf(stderr, "Took %f seconds\n", end_time - start_time);
+
+  work_queue_free(work_queue);
   image_free(image);
   return 0;
 }
@@ -123,41 +135,20 @@ void write_row_progress_callback(png_structp png_ptr, png_uint_32 row,
                                  int pass) {
   (void)png_ptr, (void)pass;
   // avoid extra unneeded printing
-  if (row % 100 == 0) {
+  if (row % 32 == 0) {
     fprintf(stderr, "\rPng write rows remaining: %d ", image_height - row);
   }
 }
 
-void ray_color(Ray ray, Hittable world[], const size_t world_len, int depth,
-               uint32_t *state, color color_out) {
-  if (depth == 0) {
-    glm_vec4_zero(color_out);
-    return;
+double time_as_double(void) {
+#ifdef _POSIX_TIMERS
+  struct timespec now;
+  if (clock_gettime(CLOCK_REALTIME, &now) != 0) {
+    fprintf(stderr, "failed to get time!");
+    return 0;
   }
-
-  HitRecord rec;
-  bool hit =
-      hittable_hit_multiple(world, world_len, ray, 0.001, INFINITY, &rec);
-  if (hit) {
-    Ray scattered;
-    color attenuation;
-    if (material_scatter(rec.material, ray, rec, state, attenuation,
-                         &scattered)) {
-      color color;
-      ray_color(scattered, world, world_len, depth - 1, state, color);
-      glm_vec4_mul(color, attenuation, color);
-      glm_vec4_copy(color, color_out);
-      return;
-    }
-    glm_vec4_zero(color_out);
-    return;
-  }
-
-  vec4 unit_dir;
-  glm_vec4_normalize_to(ray.dir, unit_dir);
-  double t = 0.5 * (unit_dir[1] + 1.0);
-  color bg1 = {1.0, 1.0, 1.0, 1.0};
-  color bg2 = {0.5, 0.7, 1.0, 1.0};
-  glm_vec4_lerp(bg1, bg2, t, color_out);
-  return;
+  return now.tv_sec + now.tv_nsec * 1e-9;
+#else
+  return (double)time(NULL);
+#endif
 }

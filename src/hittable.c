@@ -58,14 +58,14 @@ bool hittable_hit(Hittable hittable, Ray ray, double t_min, double t_max,
   }
 }
 
-bool hittable_hit_multiple(Hittable *hittables, size_t num, Ray ray,
-                           double t_min, double t_max, HitRecord *rec) {
+bool hittable_hit_multiple(World *hittables, Ray ray, double t_min,
+                           double t_max, HitRecord *rec) {
   HitRecord tmp_rec;
   bool hit = false;
   double closest = t_max;
 
-  for (size_t i = 0; i < num; i++) {
-    if (hittable_hit(hittables[i], ray, t_min, closest, &tmp_rec)) {
+  for (size_t i = 0; i < hittables->num_objects; i++) {
+    if (hittable_hit(hittables->objects[i], ray, t_min, closest, &tmp_rec)) {
       hit = true;
       closest = tmp_rec.t;
       *rec = tmp_rec;

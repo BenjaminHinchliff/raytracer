@@ -6,6 +6,7 @@
 
 #include "material.h"
 #include "ray.h"
+#include "world.h"
 
 #include <cglm/vec4.h>
 
@@ -32,8 +33,8 @@ typedef struct Hittable {
 bool hittable_hit(Hittable hittable, Ray ray, double t_min, double t_max,
                   HitRecord *rec);
 
-bool hittable_hit_multiple(Hittable *hittables, size_t num, Ray ray,
-                           double t_min, double t_max, HitRecord *rec);
+bool hittable_hit_multiple(World *hittables, Ray ray, double t_min,
+                           double t_max, HitRecord *rec);
 
 #ifdef __cplusplus
 }

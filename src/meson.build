@@ -8,7 +8,8 @@ srcs = files([
   'ray.c',
   'util.c',
   'image.c',
-  # 'work_queue.c',
+  'work_queue.c',
+  'trace.c',
 ])
 
 ctracerexe = executable(

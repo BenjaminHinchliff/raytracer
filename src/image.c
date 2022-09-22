@@ -20,7 +20,7 @@ Image *image_new(int width, int height) {
 void image_set_pixel(Image *image, int x, int y, uint8_t r, uint8_t g,
                      uint8_t b) {
   x *= NUM_CHANNELS;
-  image->pixels[y][x] = r;
+  image->pixels[y][x + 0] = r;
   image->pixels[y][x + 1] = g;
   image->pixels[y][x + 2] = b;
 }
