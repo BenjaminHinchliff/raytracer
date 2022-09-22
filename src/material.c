@@ -11,16 +11,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void random_vec4(uint32_t *state, vec4 out) {
-  vec4 v = {random_float_range(state, -1.0, 1.0),
-            random_float_range(state, -1.0, 1.0),
-            random_float_range(state, -1.0, 1.0), 0.0};
-  glm_vec4_copy(v, out);
-}
-
-void random_unit_sphere(uint32_t *state, vec4 v) {
+void random_unit_sphere(uint32_t state[4], vec4 v) {
   while (true) {
-    random_vec4(state, v);
+    random_floatx4(state, v);
+    v[3] = 0.0;
     if (glm_vec4_norm2(v) < 1.0) {
       return;
     }
@@ -28,7 +22,7 @@ void random_unit_sphere(uint32_t *state, vec4 v) {
 }
 
 bool scatter_lambertian(Material material, Ray ray, struct HitRecord rec,
-                        uint32_t *state, color attenuation, Ray *scattered) {
+                        uint32_t state[4], color attenuation, Ray *scattered) {
   (void)ray;
   vec4 scatter_direction;
   vec4 ray_in_sphere;
@@ -95,7 +89,7 @@ bool scatter_lambertian(Material material, Ray ray, struct HitRecord rec,
 // }
 
 bool material_scatter(Material material, Ray ray, const struct HitRecord rec,
-                      uint32_t *state, color attenuation, Ray *scattered) {
+                      uint32_t state[4], color attenuation, Ray *scattered) {
   switch (material.type) {
   case MATERIAL_TYPE_lambertian:
     scatter_lambertian(material, ray, rec, state, attenuation, scattered);

@@ -38,15 +38,14 @@ WorkQueue *work_queue_new(size_t capacity) {
 
 typedef struct RunnerContext {
   WorkQueue *queue;
-  uint32_t state; // rand not thread safe so needs to be passed in
+  uint32_t state[4]; // rand not thread safe so needs to be passed in
 } RunnerContext;
 
 void *work_runner(void *ptr) {
   RunnerContext *ctx = (RunnerContext *)ptr;
 
-  uint32_t state = ctx->state;
   // initialize rng
-  while (raytrace_work(ctx->queue, &state))
+  while (raytrace_work(ctx->queue, ctx->state))
     /* pass */;
 
   return NULL;
@@ -57,9 +56,10 @@ bool work_queue_run(WorkQueue *queue) {
   pthread_t *threads = malloc(sizeof(pthread_t) * num_threads);
   RunnerContext *contexts = malloc(sizeof(RunnerContext) * num_threads);
   for (int i = 0; i < num_threads; i++) {
+
     contexts[i] = (RunnerContext){
         .queue = queue,
-        .state = rand(),
+        .state = {rand(), rand(), rand(), rand()},
     };
     pthread_create(&threads[i], NULL, work_runner, (void *)&contexts[i]);
   }

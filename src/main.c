@@ -24,10 +24,10 @@
 #endif
 
 const double aspect_ratio = 16.0 / 9.0;
-const int image_width = 4096;
+const int image_width = 480;
 const int image_height = (int)(image_width / aspect_ratio);
-const int samples_per_pixel = 32;
-const int max_depth = 20;
+const int samples_per_pixel = 128;
+const int max_depth = 100;
 
 void write_row_progress_callback(png_structp png_ptr, png_uint_32 row,
                                  int pass);
@@ -124,7 +124,10 @@ int main(void) {
   image_write_png(image, "traced.png", write_row_progress_callback);
 
   fprintf(stderr, "\nDone!\n");
-  fprintf(stderr, "Took %f seconds\n", end_time - start_time);
+
+  double delta_time = end_time - start_time;
+  fprintf(stderr, "Took %f seconds at %f ms/ray\n", delta_time,
+          (delta_time * 1000.0) / (image->width * image->height * samples_per_pixel));
 
   work_queue_free(work_queue);
   image_free(image);
