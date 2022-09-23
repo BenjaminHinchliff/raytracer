@@ -7,7 +7,6 @@
 #include "pngconf.h"
 #include "ray.h"
 #include "util.h"
-#include "vec3.h"
 #include "work_queue.h"
 #include "world.h"
 

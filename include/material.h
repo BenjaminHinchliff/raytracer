@@ -6,10 +6,6 @@
 #include "color.h"
 #include "ray.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 enum MATERIAL_TYPE {
   MATERIAL_TYPE_lambertian,
   MATERIAL_TYPE_metal,
@@ -43,9 +39,5 @@ typedef struct HitRecord {
 
 bool material_scatter(Material material, Ray ray, const struct HitRecord rec,
                       uint32_t state[4], color attenuation, Ray *scattered);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

@@ -10,10 +10,6 @@
 
 #include <cglm/vec4.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 enum HITTABLE_TYPE {
   HITTABLE_TYPE_sphere,
 };
@@ -35,9 +31,5 @@ bool hittable_hit(Hittable hittable, Ray ray, double t_min, double t_max,
 
 bool hittable_hit_multiple(World *hittables, Ray ray, double t_min,
                            double t_max, HitRecord *rec);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

@@ -1,7 +1,6 @@
 #include "material.h"
 #include "ray.h"
 #include "util.h"
-#include "vec3.h"
 
 #include <cglm/vec4-ext.h>
 #include <cglm/vec4.h>
