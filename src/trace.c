@@ -5,12 +5,14 @@
 
 #include <cglm/vec4.h>
 #include <math.h>
+#include <stdio.h>
 
 void trace_ray(World *world, Ray ray, int max_depth, uint32_t state[4],
-               color color_out) {
+               color result) {
   color attenuation = GLM_VEC4_ONE_INIT;
   Ray scattered = ray;
-  for (int i = 0; i < max_depth; i++) {
+  int depth;
+  for (depth = 0; depth < max_depth; depth++) {
     HitRecord rec;
     bool hit = hittable_hit_multiple(world, scattered, 0.001, INFINITY, &rec);
     if (hit) {
@@ -18,6 +20,9 @@ void trace_ray(World *world, Ray ray, int max_depth, uint32_t state[4],
       if (material_scatter(rec.material, scattered, rec, state, mat_attenuation,
                            &scattered)) {
         glm_vec4_mul(attenuation, mat_attenuation, attenuation);
+      } else {
+        glm_vec4_zero(attenuation);
+        break;
       }
     } else {
       vec4 unit_dir;
@@ -25,14 +30,49 @@ void trace_ray(World *world, Ray ray, int max_depth, uint32_t state[4],
       double t = 0.5 * (unit_dir[1] + 1.0);
       color bg1 = {1.0, 1.0, 1.0, 1.0};
       color bg2 = {0.5, 0.7, 1.0, 1.0};
-      color lerped;
-      glm_vec4_lerp(bg1, bg2, t, lerped);
-      glm_vec4_mul(attenuation, lerped, attenuation);
+      color bg;
+      glm_vec4_lerp(bg1, bg2, t, bg);
+      glm_vec4_mul(attenuation, bg, attenuation);
       break;
     }
   }
 
-  glm_vec4_copy(attenuation, color_out);
+  if (depth == max_depth) {
+    glm_vec4_zero(attenuation);
+  }
+
+  glm_vec4_copy(attenuation, result);
+}
+
+void trace_ray_recurse(World *world, Ray ray, int depth, uint32_t state[4],
+                       color result) {
+  if (depth == 0) {
+    glm_vec4_zero(result);
+    return;
+  }
+
+  HitRecord rec;
+  bool hit = hittable_hit_multiple(world, ray, 0.001, INFINITY, &rec);
+  if (hit) {
+    Ray scattered;
+    color attenuation;
+    if (material_scatter(rec.material, ray, rec, state, attenuation,
+                         &scattered)) {
+      trace_ray(world, scattered, depth - 1, state, result);
+      glm_vec4_mul(result, attenuation, result);
+      return;
+    }
+    glm_vec4_zero(result);
+    return;
+  }
+
+  vec4 unit_dir;
+  glm_vec4_normalize_to(ray.dir, unit_dir);
+  double t = 0.5 * (unit_dir[1] + 1.0);
+  color bg1 = {1.0, 1.0, 1.0, 1.0};
+  color bg2 = {0.5, 0.7, 1.0, 1.0};
+  glm_vec4_lerp(bg1, bg2, t, result);
+  return;
 }
 
 void trace_rows(World *world, uint32_t state[4], int start, int end,

@@ -4,7 +4,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 
-bool raytrace_work(WorkQueue *work_queue, uint32_t *state) {
+bool raytrace_work(WorkQueue *work_queue, uint32_t state[4]) {
   size_t next_order = work_queue->next_order++;
   if (next_order >= work_queue->count) {
     return false;
@@ -59,7 +59,7 @@ bool work_queue_run(WorkQueue *queue) {
 
     contexts[i] = (RunnerContext){
         .queue = queue,
-        .state = {rand(), rand(), rand(), rand()},
+        .state = {rand(), rand(), rand(), 0},
     };
     pthread_create(&threads[i], NULL, work_runner, (void *)&contexts[i]);
   }

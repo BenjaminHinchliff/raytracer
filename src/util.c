@@ -2,6 +2,16 @@
 
 float degrees_to_radians(float degrees) { return degrees * M_PI / 180.0; }
 
+uint32_t XOrShift32(uint32_t *state) {
+  // hoping this can be auto vectorized
+  uint32_t x = *state;
+  x ^= x << 13;
+  x ^= x >> 17;
+  x ^= x << 5;
+  *state = x;
+  return x;
+}
+
 void XOrShift32x4(uint32_t state[4]) {
   // hoping this can be auto vectorized
   for (int i = 0; i < 4; i++) {
@@ -18,7 +28,7 @@ void random_floatx4(uint32_t state[4], vec4 out) {
   }
 }
 
-void random_float_rangex4(uint32_t *state, float min, float max, vec4 out) {
+void random_float_rangex4(uint32_t state[4], float min, float max, vec4 out) {
   random_floatx4(state, out);
   for (int i = 0; i < 4; i++) {
     out[i] = min + (max - min) * out[i];

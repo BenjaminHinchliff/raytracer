@@ -31,8 +31,6 @@ const int max_depth = 100;
 
 void write_row_progress_callback(png_structp png_ptr, png_uint_32 row,
                                  int pass);
-void trace_ray(Ray ray, World world, int depth, uint32_t *state,
-               color color_out);
 double time_as_double(void);
 
 int main(void) {
@@ -85,7 +83,7 @@ int main(void) {
           .material =
               {
                   .type = MATERIAL_TYPE_lambertian,
-                  .l_albedo = {0.8, 0.8, 0.0, 1.0},
+                  .l_albedo = {0.6, 0.8, 0.0, 1.0},
               },
       },
   };
@@ -126,8 +124,9 @@ int main(void) {
   fprintf(stderr, "\nDone!\n");
 
   double delta_time = end_time - start_time;
-  fprintf(stderr, "Took %f seconds at %f ms/ray\n", delta_time,
-          (delta_time * 1000.0) / (image->width * image->height * samples_per_pixel));
+  fprintf(stderr, "Took %f seconds at %f ns/ray\n", delta_time,
+          (delta_time * 1e+9) /
+              (image->width * image->height * samples_per_pixel));
 
   work_queue_free(work_queue);
   image_free(image);

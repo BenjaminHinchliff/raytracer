@@ -13,8 +13,8 @@
 
 void random_unit_sphere(uint32_t state[4], vec4 v) {
   while (true) {
-    random_floatx4(state, v);
-    v[3] = 0.0;
+    random_float_rangex4(state, -1.0, 1.0, v);
+    v[3] = 0.0; // discard unwanted component
     if (glm_vec4_norm2(v) < 1.0) {
       return;
     }
@@ -28,6 +28,9 @@ bool scatter_lambertian(Material material, Ray ray, struct HitRecord rec,
   vec4 ray_in_sphere;
   random_unit_sphere(state, ray_in_sphere);
   glm_vec4_add(rec.normal, ray_in_sphere, scatter_direction);
+
+  // fprintf(stderr, "(%f, %f, %f, %f)\n", ray_in_sphere[0], ray_in_sphere[1],
+  //         ray_in_sphere[2], ray_in_sphere[3]);
 
   if (glm_vec4_eq_eps(scatter_direction, 0.0)) {
     glm_vec4_copy(rec.normal, scatter_direction);
