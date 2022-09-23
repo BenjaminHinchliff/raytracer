@@ -23,7 +23,7 @@
 #endif
 
 const double aspect_ratio = 16.0 / 9.0;
-const int image_width = 480;
+const int image_width = 2160;
 const int image_height = (int)(image_width / aspect_ratio);
 const int samples_per_pixel = 128;
 const int max_depth = 100;
@@ -37,23 +37,23 @@ int main(void) {
 
   Camera camera = camera_new(aspect_ratio);
 
-  // const Material mat_left = {
-  //     .type = MATERIAL_TYPE_dielectric,
-  //     .ir = 1.5,
-  // };
+  const Material mat_left = {
+      .type = MATERIAL_TYPE_dielectric,
+      .ir = 1.5,
+  };
   Hittable objects[] = {
-      // {
-      //     .type = HITTABLE_TYPE_sphere,
-      //     .center = {-1.0, 0.0, -1.0, 0.0},
-      //     .radius = 0.5,
-      //     .material = mat_left,
-      // },
-      // {
-      //     .type = HITTABLE_TYPE_sphere,
-      //     .center = {-1.0, 0.0, -1.0, 0.0},
-      //     .radius = -0.4,
-      //     .material = mat_left,
-      // },
+      {
+          .type = HITTABLE_TYPE_sphere,
+          .center = {-1.0, 0.0, -1.0, 0.0},
+          .radius = 0.5,
+          .material = mat_left,
+      },
+      {
+          .type = HITTABLE_TYPE_sphere,
+          .center = {-1.0, 0.0, -1.0, 0.0},
+          .radius = -0.4,
+          .material = mat_left,
+      },
       {
           .type = HITTABLE_TYPE_sphere,
           .center = {0.0, 0.0, -1.0, 0.0},
@@ -64,17 +64,17 @@ int main(void) {
                   .l_albedo = {0.1, 0.2, 0.5, 1.0},
               },
       },
-      // {
-      //     .type = HITTABLE_TYPE_sphere,
-      //     .center = {1.0, 0.0, -1.0, 0.0},
-      //     .radius = 0.5,
-      //     .material =
-      //         {
-      //             .type = MATERIAL_TYPE_metal,
-      //             .m_albedo = {0.8, 0.6, 0.2, 1.0},
-      //             .fuzz = 0.3,
-      //         },
-      // },
+      {
+          .type = HITTABLE_TYPE_sphere,
+          .center = {1.0, 0.0, -1.0, 0.0},
+          .radius = 0.5,
+          .material =
+              {
+                  .type = MATERIAL_TYPE_metal,
+                  .m_albedo = {0.8, 0.6, 0.2, 1.0},
+                  .fuzz = 0.3,
+              },
+      },
       {
           .type = HITTABLE_TYPE_sphere,
           .center = {0.0, -100.5, -1.0, 0.0},

@@ -21,6 +21,10 @@ void XOrShift32x4(uint32_t state[4]) {
   }
 }
 
+float random_float(uint32_t *state) {
+  return XOrShift32(state) / (UINT32_MAX + 1.0);
+}
+
 void random_floatx4(uint32_t state[4], vec4 out) {
   XOrShift32x4(state);
   for (int i = 0; i < 4; i++) {

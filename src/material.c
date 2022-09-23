@@ -2,6 +2,7 @@
 #include "ray.h"
 #include "util.h"
 
+#include <cglm/vec3.h>
 #include <cglm/vec4-ext.h>
 #include <cglm/vec4.h>
 #include <math.h>
@@ -28,9 +29,6 @@ bool scatter_lambertian(Material material, Ray ray, struct HitRecord rec,
   random_unit_sphere(state, ray_in_sphere);
   glm_vec4_add(rec.normal, ray_in_sphere, scatter_direction);
 
-  // fprintf(stderr, "(%f, %f, %f, %f)\n", ray_in_sphere[0], ray_in_sphere[1],
-  //         ray_in_sphere[2], ray_in_sphere[3]);
-
   if (glm_vec4_eq_eps(scatter_direction, 0.0)) {
     glm_vec4_copy(rec.normal, scatter_direction);
   }
@@ -40,66 +38,87 @@ bool scatter_lambertian(Material material, Ray ray, struct HitRecord rec,
   return true;
 }
 
-// bool scatter_metal(const Material *material, const Ray *ray,
-//                    const struct HitRecord rec, Color *attenuation,
-//                    Ray *scattered) {
-//   Vec3 reflected = ray->dir;
-//   vec3_unit_vector(&reflected);
-//   vec3_reflect(&reflected, &rec.normal);
-//   Vec3 fuzz_vec = vec3_random_in_unit_sphere();
-//   vec3_mul_scalar(&fuzz_vec, material->fuzz);
-//   vec3_add(&reflected, &fuzz_vec);
-//   *scattered = ray_new(rec.p, reflected);
-//   *attenuation = material->m_albedo;
-//   return vec3_dot(&scattered->dir, &rec.normal) > 0.0;
-// }
-//
-// static double reflectance(double cosine, double ref_idx) {
-//   double r0 = (1 - ref_idx) / (1 + ref_idx);
-//   r0 = r0 * r0;
-//   return r0 + (1 - r0) * pow(1 - cosine, 5);
-// }
-//
-// bool scatter_dielectric(const Material *material, const Ray *ray,
-//                         const struct HitRecord rec, Color *attenuation,
-//                         Ray *scattered) {
-//   *attenuation = vec3_new(1.0, 1.0, 1.0);
-//
-//   double refrection_ratio = rec.front_face ? 1.0 / material->ir :
-//   material->ir;
-//
-//   Vec3 unit_dir = ray->dir;
-//   vec3_unit_vector(&unit_dir);
-//
-//   Vec3 neg_unit_dir = unit_dir;
-//   vec3_neg(&neg_unit_dir);
-//   double cos_theta = fmin(vec3_dot(&neg_unit_dir, &rec.normal), 1.0);
-//   double sin_theta = sqrt(1.0 - cos_theta * cos_theta);
-//
-//   bool cannot_refract = refrection_ratio * sin_theta > 1.0;
-//   Vec3 refrac_dir = unit_dir;
-//
-//   if (cannot_refract ||
-//       reflectance(cos_theta, refrection_ratio) > random_double()) {
-//     vec3_reflect(&refrac_dir, &rec.normal);
-//   } else {
-//     vec3_refract(&refrac_dir, &rec.normal, refrection_ratio);
-//   }
-//
-//   *scattered = ray_new(rec.p, refrac_dir);
-//   return true;
-// }
+void reflect(vec4 v, vec4 n, vec4 res) {
+  float dot = glm_vec4_dot(v, n);
+  glm_vec4_scale(n, 2 * dot, res);
+  glm_vec4_sub(v, res, res);
+}
 
-bool material_scatter(Material material, Ray ray, const struct HitRecord rec,
+bool scatter_metal(Material material, Ray ray, struct HitRecord rec,
+                   uint32_t state[4], color attenuation, Ray *scattered) {
+  vec4 reflected;
+  reflect(ray.dir, rec.normal, reflected);
+  vec4 fuzz_vec;
+  random_unit_sphere(state, fuzz_vec);
+  glm_vec4_muladds(fuzz_vec, material.fuzz, reflected);
+  *scattered = ray_new(rec.p, reflected);
+  glm_vec4_copy(material.m_albedo, attenuation);
+  return glm_vec4_dot(scattered->dir, rec.normal) > 0.0;
+}
+
+void refract(vec4 uv, vec4 n, double refraction_ratio, vec4 res) {
+  vec4 neg_uv;
+  glm_vec4_negate_to(uv, neg_uv);
+  float cos_theta = fminf(glm_vec4_dot(neg_uv, n), 1.0);
+
+  vec4 r_out_perp;
+  glm_vec4_scale(n, cos_theta, r_out_perp);
+  glm_vec4_add(r_out_perp, uv, r_out_perp);
+  glm_vec4_scale(r_out_perp, refraction_ratio, r_out_perp);
+
+  vec4 r_out_parallel;
+  glm_vec4_scale(n, -sqrtf(fabsf(1.0f - glm_vec4_norm2(r_out_perp))),
+                 r_out_parallel);
+
+  glm_vec4_add(r_out_perp, r_out_parallel, res);
+}
+
+static double reflectance(double cosine, double ref_idx) {
+  double r0 = (1 - ref_idx) / (1 + ref_idx);
+  r0 = r0 * r0;
+  return r0 + (1 - r0) * pow(1 - cosine, 5);
+}
+
+bool scatter_dielectric(Material material, Ray ray, struct HitRecord rec,
+                        uint32_t state[4], color attenuation, Ray *scattered) {
+  glm_vec4_one(attenuation);
+
+  double refrection_ratio = rec.front_face ? 1.0 / material.ir : material.ir;
+
+  vec4 unit_dir;
+  glm_vec3_normalize_to(ray.dir, unit_dir);
+
+  vec4 neg_unit_dir;
+  glm_vec4_negate_to(unit_dir, neg_unit_dir);
+  double cos_theta = fmin(glm_vec4_dot(neg_unit_dir, rec.normal), 1.0);
+  double sin_theta = sqrt(1.0 - cos_theta * cos_theta);
+
+  bool cannot_refract = refrection_ratio * sin_theta > 1.0;
+  vec4 refrac_dir;
+
+  if (cannot_refract ||
+      reflectance(cos_theta, refrection_ratio) > random_float(state)) {
+    reflect(unit_dir, rec.normal, refrac_dir);
+  } else {
+    refract(unit_dir, rec.normal, refrection_ratio, refrac_dir);
+  }
+
+  *scattered = ray_new(rec.p, refrac_dir);
+  return true;
+}
+
+bool material_scatter(Material material, Ray ray, struct HitRecord rec,
                       uint32_t state[4], color attenuation, Ray *scattered) {
   switch (material.type) {
   case MATERIAL_TYPE_lambertian:
     scatter_lambertian(material, ray, rec, state, attenuation, scattered);
     break;
   case MATERIAL_TYPE_metal:
-    // scatter_metal(material, ray, rec, attenuation, scattered);
+    scatter_metal(material, ray, rec, state, attenuation, scattered);
+    break;
   case MATERIAL_TYPE_dielectric:
-    // scatter_dielectric(material, ray, rec, attenuation, scattered);
+    scatter_dielectric(material, ray, rec, state, attenuation, scattered);
+    break;
   default:
     fprintf(stderr, "ILLEGAL TYPE CALL IN get_scatter_action\n");
     exit(1);
