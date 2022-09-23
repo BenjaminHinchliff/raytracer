@@ -3,7 +3,6 @@
 float degrees_to_radians(float degrees) { return degrees * M_PI / 180.0; }
 
 uint32_t XOrShift32(uint32_t *state) {
-  // hoping this can be auto vectorized
   uint32_t x = *state;
   x ^= x << 13;
   x ^= x >> 17;
@@ -12,8 +11,9 @@ uint32_t XOrShift32(uint32_t *state) {
   return x;
 }
 
+// generates 4 random numbers in a parallel manner,
+// letting compiler handle simd optimization (seems to work okay)
 void XOrShift32x4(uint32_t state[4]) {
-  // hoping this can be auto vectorized
   for (int i = 0; i < 4; i++) {
     state[i] ^= state[i] << 13;
     state[i] ^= state[i] >> 17;

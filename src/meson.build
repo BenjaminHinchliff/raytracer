@@ -16,5 +16,5 @@ ctracerexe = executable(
   'ctracer',
   srcs,
   include_directories : inc,
-  dependencies : [m_dep, threads_dep, libpng_dep, cglm_dep],
+  dependencies : [m_dep, threads_dep, openmp_dep, libpng_dep, cglm_dep],
 )

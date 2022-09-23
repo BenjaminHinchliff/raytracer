@@ -77,25 +77,30 @@ void trace_ray_recurse(World *world, Ray ray, int depth, uint32_t state[4],
 
 void trace_rows(World *world, uint32_t state[4], int start, int end,
                 int samples, int max_depth, Image *image) {
-  for (int y = start; y < end; y++) {
-    for (int x = 0; x < image->width; x++) {
-      color sample = GLM_VEC4_ZERO_INIT;
-      for (int s = 0; s < samples; s++) {
-        vec4 floats;
-        random_floatx4(state, floats);
-        float u = ((float)x + floats[0]) / (float)(image->width - 1);
-        float v = ((float)y + floats[1]) / (float)(image->height - 1);
-        Ray ray = camera_get_ray(world->camera, u, v);
-        color next_color;
-        trace_ray(world, ray, max_depth, state, next_color);
-        glm_vec4_add(sample, next_color, sample);
+  const int chunk = 16;
+#pragma omp parallel shared(world, image)
+  {
+#pragma omp for schedule(static, chunk)
+    for (int y = start; y < end; y++) {
+      for (int x = 0; x < image->width; x++) {
+        color sample = GLM_VEC4_ZERO_INIT;
+        for (int s = 0; s < samples; s++) {
+          vec4 floats;
+          random_floatx4(state, floats);
+          float u = ((float)x + floats[0]) / (float)(image->width - 1);
+          float v = ((float)y + floats[1]) / (float)(image->height - 1);
+          Ray ray = camera_get_ray(world->camera, u, v);
+          color next_color;
+          trace_ray(world, ray, max_depth, state, next_color);
+          glm_vec4_add(sample, next_color, sample);
+        }
+        glm_vec4_divs(sample, samples, sample);
+
+        uint8_t r, g, b;
+        vec4_to_color(sample, &r, &g, &b);
+
+        image_set_pixel(image, x, image->height - y - 1, r, g, b);
       }
-      glm_vec4_divs(sample, samples, sample);
-
-      uint8_t r, g, b;
-      vec4_to_color(sample, &r, &g, &b);
-
-      image_set_pixel(image, x, image->height - y - 1, r, g, b);
     }
   }
 }

@@ -7,6 +7,8 @@ cc = meson.get_compiler('c')
 
 m_dep = cc.find_library('m', required: false)
 threads_dep = dependency('threads')
+openmp_dep = dependency('openmp')
+
 libpng_dep = dependency('libpng')
 cglm_dep = dependency('cglm', fallback : ['cglm', 'cglm_dep'])
 
