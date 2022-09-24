@@ -6,7 +6,7 @@ project('ctracer', 'c',
 cc = meson.get_compiler('c')
 
 m_dep = cc.find_library('m', required: false)
-threads_dep = dependency('threads')
+# threads_dep = dependency('threads')
 openmp_dep = dependency('openmp')
 
 libpng_dep = dependency('libpng')
