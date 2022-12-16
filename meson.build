@@ -1,7 +1,7 @@
 project('ctracer', 'c',
   version : '1.0.0',
   license : 'MIT',
-  default_options : ['warning_level=3', 'werror=true', 'b_lto=true', 'c_std=c11'])
+  default_options : ['warning_level=3', 'werror=true', 'b_lto=true', 'c_std=gnu11'])
 
 cc = meson.get_compiler('c')
 
