@@ -23,14 +23,12 @@
 #include <unistd.h>
 #endif
 
-const double aspect_ratio = 16.0 / 9.0;
 const int image_width = 1920;
-const int image_height = (int)(image_width / aspect_ratio);
-const int samples_per_pixel = 128;
-const int max_depth = 64;
+const int image_height = 1080;
+const double aspect_ratio = (double)image_width / (double)image_height;
+const int samples_per_pixel = 512;
+const int max_depth = 32;
 
-void write_row_progress_callback(png_structp png_ptr, png_uint_32 row,
-                                 int pass);
 double time_as_double(void);
 
 int main(void) {
@@ -96,25 +94,9 @@ int main(void) {
 
   Image *image = image_new(image_width, image_height);
 
-  // uint32_t rng_state = rand();
-  //
-  // WorkQueue *work_queue = work_queue_new(image->height);
-  // for (int row = 0; row < image->height; row++) {
-  //   WorkOrder order = (WorkOrder){
-  //       .image = image,
-  //       .world = &world,
-  //       .start_row_index = row,
-  //       .end_row_index = row + 1,
-  //       .samples = samples_per_pixel,
-  //       .max_depth = max_depth,
-  //   };
-  //
-  //   work_queue_add(work_queue, order);
-  // }
-
   double start_time = time_as_double();
 
-  // work_queue_run(work_queue);
+  fprintf(stderr, "Raytracing...\n");
 
   uint32_t rng_state[4] = {rand(), rand(), rand(), 0.0};
 
@@ -122,29 +104,20 @@ int main(void) {
              image);
 
   double end_time = time_as_double();
-  fprintf(stderr, "\n");
 
-  image_write_png(image, "traced.png", write_row_progress_callback);
+  fprintf(stderr, "Writing out png...\n");
 
-  fprintf(stderr, "\nDone!\n");
+  image_write_png(image, "traced.png", NULL);
+
+  fprintf(stderr, "Done!\n");
 
   double delta_time = end_time - start_time;
   fprintf(stderr, "Took %f seconds at %f ns/ray\n", delta_time,
           (delta_time * 1e+9) /
               (image->width * image->height * samples_per_pixel));
 
-  // work_queue_free(work_queue);
   image_free(image);
   return 0;
-}
-
-void write_row_progress_callback(png_structp png_ptr, png_uint_32 row,
-                                 int pass) {
-  (void)png_ptr, (void)pass;
-  // avoid extra unneeded printing
-  if (row % 32 == 0) {
-    fprintf(stderr, "\rPng write rows remaining: %d ", image_height - row);
-  }
 }
 
 double time_as_double(void) {
@@ -152,7 +125,7 @@ double time_as_double(void) {
   struct timespec now;
   if (clock_gettime(CLOCK_REALTIME, &now) != 0) {
     fprintf(stderr, "failed to get time!");
-    return 0;
+    return 1;
   }
   return now.tv_sec + now.tv_nsec * 1e-9;
 #else
