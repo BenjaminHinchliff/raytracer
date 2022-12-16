@@ -6,9 +6,10 @@
 
 #include "material.h"
 #include "ray.h"
-#include "world.h"
 
 #include <cglm/vec4.h>
+
+typedef struct World World;
 
 enum HITTABLE_TYPE {
   HITTABLE_TYPE_sphere,
@@ -21,7 +22,7 @@ typedef struct Hittable {
     struct { // type = sphere
       vec4 center;
       double radius;
-      Material material;
+      const Material *material;
     };
   };
 } Hittable;

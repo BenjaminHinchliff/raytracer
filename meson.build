@@ -11,6 +11,7 @@ openmp_dep = dependency('openmp')
 
 libpng_dep = dependency('libpng')
 cglm_dep = dependency('cglm', fallback : ['cglm', 'cglm_dep'])
+cjson_dep = dependency('libcjson', fallback : ['libcjson_dep'])
 
 inc = include_directories('include')
 

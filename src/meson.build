@@ -8,8 +8,8 @@ srcs = files([
   'ray.c',
   'util.c',
   'image.c',
-  # 'work_queue.c', # replaced by openmp
   'trace.c',
+  'world.c',
 ])
 
 ctracerexe = executable(
@@ -18,9 +18,9 @@ ctracerexe = executable(
   include_directories : inc,
   dependencies : [
     m_dep,
-    # threads_dep
     openmp_dep,
     libpng_dep,
-    cglm_dep
+    cglm_dep,
+    cjson_dep,
   ],
 )

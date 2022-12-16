@@ -1,0 +1,113 @@
+{
+  "screen": {
+    "width": 1920,
+    "height": 1080,
+    "samples": 512,
+    "max-depth": 32
+  },
+  "camera": {
+    "width": "auto",
+    "height": 2.0,
+    "focal-length": 1.0
+  },
+  "objects": [
+    {
+      "sphere": {
+        "center": [
+          -1.0,
+          0.0,
+          -1.0,
+          0.0
+        ],
+        "radius": 0.5,
+        "material": "left"
+      }
+    },
+    {
+      "sphere": {
+        "center": [
+          -1.0,
+          0.0,
+          -1.0,
+          0.0
+        ],
+        "radius": -0.4,
+        "material": "left"
+      }
+    },
+    {
+      "sphere": {
+        "center": [
+          0.0,
+          0.0,
+          -1.0,
+          0.0
+        ],
+        "radius": 0.5,
+        "material": "center"
+      }
+    },
+    {
+      "sphere": {
+        "center": [
+          1.0,
+          0.0,
+          -1.0,
+          0.0
+        ],
+        "radius": 0.5,
+        "material": "right"
+      }
+    },
+    {
+      "sphere": {
+        "center": [
+          0.0,
+          -100.5,
+          -1.0,
+          0.0
+        ],
+        "radius": 100.0,
+        "material": "floor"
+      }
+    }
+  ],
+  "materials": {
+    "left": {
+      "dielectric": {
+        "index-of-refraction": 1.5
+      }
+    },
+    "center": {
+      "lambertian": {
+        "albedo": [
+          0.8,
+          0.6,
+          0.2,
+          1.0
+        ]
+      }
+    },
+    "right": {
+      "metal": {
+        "albedo": [
+          0.8,
+          0.6,
+          0.2,
+          1.0
+        ],
+        "fuzz": 0.3
+      }
+    },
+    "floor": {
+      "lambertian": {
+        "albedo": [
+          0.6,
+          0.8,
+          0.0,
+          1.0
+        ]
+      }
+    }
+  }
+}

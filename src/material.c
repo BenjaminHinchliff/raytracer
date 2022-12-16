@@ -21,7 +21,7 @@ void random_unit_sphere(uint32_t state[4], vec4 v) {
   }
 }
 
-bool scatter_lambertian(Material material, Ray ray, struct HitRecord rec,
+bool scatter_lambertian(const Material *material, Ray ray, struct HitRecord rec,
                         uint32_t state[4], color attenuation, Ray *scattered) {
   (void)ray;
   vec4 scatter_direction;
@@ -34,7 +34,7 @@ bool scatter_lambertian(Material material, Ray ray, struct HitRecord rec,
   }
 
   *scattered = ray_new(rec.p, scatter_direction);
-  glm_vec4_copy(material.m_albedo, attenuation);
+  glm_vec4_copy((float *)material->l_albedo, attenuation);
   return true;
 }
 
@@ -44,15 +44,15 @@ void reflect(vec4 v, vec4 n, vec4 res) {
   glm_vec4_sub(v, res, res);
 }
 
-bool scatter_metal(Material material, Ray ray, struct HitRecord rec,
+bool scatter_metal(const Material *material, Ray ray, struct HitRecord rec,
                    uint32_t state[4], color attenuation, Ray *scattered) {
   vec4 reflected;
   reflect(ray.dir, rec.normal, reflected);
   vec4 fuzz_vec;
   random_unit_sphere(state, fuzz_vec);
-  glm_vec4_muladds(fuzz_vec, material.fuzz, reflected);
+  glm_vec4_muladds(fuzz_vec, material->fuzz, reflected);
   *scattered = ray_new(rec.p, reflected);
-  glm_vec4_copy(material.m_albedo, attenuation);
+  glm_vec4_copy((float *)material->m_albedo, attenuation);
   return glm_vec4_dot(scattered->dir, rec.normal) > 0.0;
 }
 
@@ -79,11 +79,11 @@ static double reflectance(double cosine, double ref_idx) {
   return r0 + (1 - r0) * pow(1 - cosine, 5);
 }
 
-bool scatter_dielectric(Material material, Ray ray, struct HitRecord rec,
+bool scatter_dielectric(const Material *material, Ray ray, struct HitRecord rec,
                         uint32_t state[4], color attenuation, Ray *scattered) {
   glm_vec4_one(attenuation);
 
-  double refrection_ratio = rec.front_face ? 1.0 / material.ir : material.ir;
+  double refrection_ratio = rec.front_face ? 1.0 / material->ir : material->ir;
 
   vec4 unit_dir;
   glm_vec3_normalize_to(ray.dir, unit_dir);
@@ -107,9 +107,9 @@ bool scatter_dielectric(Material material, Ray ray, struct HitRecord rec,
   return true;
 }
 
-bool material_scatter(Material material, Ray ray, struct HitRecord rec,
+bool material_scatter(const Material *material, Ray ray, struct HitRecord rec,
                       uint32_t state[4], color attenuation, Ray *scattered) {
-  switch (material.type) {
+  switch (material->type) {
   case MATERIAL_TYPE_lambertian:
     scatter_lambertian(material, ray, rec, state, attenuation, scattered);
     break;

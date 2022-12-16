@@ -1,5 +1,6 @@
 #include "hittable.h"
 #include "ray.h"
+#include "world.h"
 
 #include <cglm/vec4.h>
 #include <math.h>

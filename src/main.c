@@ -23,76 +23,82 @@
 #include <unistd.h>
 #endif
 
-const int image_width = 1920;
-const int image_height = 1080;
-const double aspect_ratio = (double)image_width / (double)image_height;
-const int samples_per_pixel = 512;
-const int max_depth = 32;
+const double viewport_height = 2.0;
+const double focal_length = 1.0;
 
 double time_as_double(void);
 
 int main(void) {
   srand(time(NULL));
 
-  Camera camera = camera_new(aspect_ratio);
+  Screen screen = {
+      .width = 720,
+      .height = 480,
+      .samples = 64,
+  };
+
+  const double aspect_ratio = (double)screen.width / (double)screen.height;
+
+  Camera camera = camera_new(viewport_height, aspect_ratio, focal_length);
 
   const Material mat_left = {
       .type = MATERIAL_TYPE_dielectric,
       .ir = 1.5,
+  };
+  const Material mat_center = {
+      .type = MATERIAL_TYPE_lambertian,
+      .l_albedo = {0.1, 0.2, 0.5, 1.0},
+  };
+  const Material mat_right = {
+      .type = MATERIAL_TYPE_metal,
+      .m_albedo = {0.8, 0.6, 0.2, 1.0},
+      .fuzz = 0.3,
+  };
+  const Material mat_floor = {
+      .type = MATERIAL_TYPE_lambertian,
+      .l_albedo = {0.6, 0.8, 0.0, 1.0},
   };
   Hittable objects[] = {
       {
           .type = HITTABLE_TYPE_sphere,
           .center = {-1.0, 0.0, -1.0, 0.0},
           .radius = 0.5,
-          .material = mat_left,
+          .material = &mat_left,
       },
       {
           .type = HITTABLE_TYPE_sphere,
           .center = {-1.0, 0.0, -1.0, 0.0},
           .radius = -0.4,
-          .material = mat_left,
+          .material = &mat_left,
       },
       {
           .type = HITTABLE_TYPE_sphere,
           .center = {0.0, 0.0, -1.0, 0.0},
           .radius = 0.5,
-          .material =
-              {
-                  .type = MATERIAL_TYPE_lambertian,
-                  .l_albedo = {0.1, 0.2, 0.5, 1.0},
-              },
+          .material = &mat_center,
       },
       {
           .type = HITTABLE_TYPE_sphere,
           .center = {1.0, 0.0, -1.0, 0.0},
           .radius = 0.5,
-          .material =
-              {
-                  .type = MATERIAL_TYPE_metal,
-                  .m_albedo = {0.8, 0.6, 0.2, 1.0},
-                  .fuzz = 0.3,
-              },
+          .material = &mat_right,
       },
       {
           .type = HITTABLE_TYPE_sphere,
           .center = {0.0, -100.5, -1.0, 0.0},
           .radius = 100,
-          .material =
-              {
-                  .type = MATERIAL_TYPE_lambertian,
-                  .l_albedo = {0.6, 0.8, 0.0, 1.0},
-              },
+          .material = &mat_floor,
       },
   };
   size_t num_objects = sizeof(objects) / sizeof(Hittable);
+
   World world = {
+      .screen = screen,
       .camera = camera,
       .objects = objects,
       .num_objects = num_objects,
+      .max_depth = 32,
   };
-
-  Image *image = image_new(image_width, image_height);
 
   double start_time = time_as_double();
 
@@ -100,8 +106,7 @@ int main(void) {
 
   uint32_t rng_state[4] = {rand(), rand(), rand(), 0.0};
 
-  trace_rows(&world, rng_state, 0, image->height, samples_per_pixel, max_depth,
-             image);
+  Image *image = trace_rows(&world, rng_state);
 
   double end_time = time_as_double();
 
@@ -113,8 +118,8 @@ int main(void) {
 
   double delta_time = end_time - start_time;
   fprintf(stderr, "Took %f seconds at %f ns/ray\n", delta_time,
-          (delta_time * 1e+9) /
-              (image->width * image->height * samples_per_pixel));
+          (delta_time * 1e+9) / (world.screen.width * world.screen.height *
+                                 world.screen.samples));
 
   image_free(image);
   return 0;

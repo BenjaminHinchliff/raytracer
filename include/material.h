@@ -11,7 +11,7 @@ enum MATERIAL_TYPE {
   MATERIAL_TYPE_metal,
   MATERIAL_TYPE_dielectric,
 };
-#define NUM_MATERIAL_TYPES (1)
+#define NUM_MATERIAL_TYPES (3)
 
 typedef struct Material {
   enum MATERIAL_TYPE type;
@@ -32,12 +32,13 @@ typedef struct Material {
 typedef struct HitRecord {
   vec4 p;
   vec4 normal;
-  Material material;
+  const Material *material;
   double t;
   bool front_face;
 } HitRecord;
 
-bool material_scatter(Material material, Ray ray, const struct HitRecord rec,
-                      uint32_t state[4], color attenuation, Ray *scattered);
+bool material_scatter(const Material *material, Ray ray,
+                      const struct HitRecord rec, uint32_t state[4],
+                      color attenuation, Ray *scattered);
 
 #endif
