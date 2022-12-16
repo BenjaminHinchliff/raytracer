@@ -1,4 +1,12 @@
+# Output dir
 builddir/
+
+# Vim swap files
 *.swp
+
+# clangd
 compile_commands.json
 .cache/
+
+# output images
+*.png
