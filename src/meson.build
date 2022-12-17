@@ -10,6 +10,7 @@ srcs = files([
   'image.c',
   'trace.c',
   'world.c',
+  'options.c',
 ])
 
 opts = []

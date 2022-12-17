@@ -3,6 +3,7 @@
 #include "hittable.h"
 #include "image.h"
 #include "material.h"
+#include "options.h"
 #include "png_write.h"
 #include "pngconf.h"
 #include "ray.h"
@@ -29,16 +30,23 @@ double time_as_double(void);
 
 char *read_file_to_string(const char *path);
 
-int main(void) {
+int main(int argc, char *argv[]) {
   int status = 0;
   char *json_src = NULL;
   World *world = NULL;
   Image *image = NULL;
+  Options *opts = NULL;
 
   srand(time(NULL));
 
+  opts = options_parse(argc, argv);
+  if (opts == NULL) {
+    status = 1;
+    goto end;
+  }
+
   // get source from file
-  json_src = read_file_to_string("tests/scene.json");
+  json_src = read_file_to_string(opts->world_path);
   if (json_src == NULL) {
     fprintf(stderr, "failed to open scene file\n");
     status = 1;
@@ -66,7 +74,7 @@ int main(void) {
 
   fprintf(stderr, "Writing out png...\n");
 
-  image_write_png(image, "traced.png", NULL);
+  image_write_png(image, opts->output_path, NULL);
 
   fprintf(stderr, "Done!\n");
 
