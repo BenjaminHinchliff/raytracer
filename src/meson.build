@@ -23,6 +23,4 @@ ctracerexe = executable(
     cglm_dep,
     cjson_dep,
   ],
-  cpp_args : '-fsanitize=address',
-  link_args : '-fsanitize=address',
 )
