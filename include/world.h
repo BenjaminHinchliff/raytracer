@@ -19,9 +19,12 @@ typedef struct World {
   Camera camera;
   Hittable *objects;
   size_t num_objects;
+  // here to keep track of the pointer
   Material *materials;
 } World;
 
 bool world_load(const char *json_src, World *world);
+
+void world_free(World *world);
 
 #endif

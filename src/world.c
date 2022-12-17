@@ -235,10 +235,6 @@ bool world_load(const char *json_src, World *world) {
     goto end;
   }
 
-  char *json_str = cJSON_Print(json);
-  printf("%s\n\n", json_str);
-  free(json_str);
-
   // screen
   cJSON *screen = cJSON_GetObjectItemCaseSensitive(json, "screen");
   if (!cJSON_IsObject(screen)) {
@@ -316,4 +312,9 @@ end:
   free(mat_names);
   cJSON_Delete(json);
   return success;
+}
+
+void world_free(World *world) {
+  free(world->objects);
+  free(world->materials);
 }
