@@ -84,6 +84,7 @@ int main(int argc, char *argv[]) {
                                  world->screen.samples));
 
 end:
+  options_free(opts);
   image_free(image);
   world_free(world);
   free(json_src);

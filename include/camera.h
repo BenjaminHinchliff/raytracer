@@ -12,8 +12,8 @@ typedef struct Camera {
   vec4 vertical;
 } Camera;
 
-Camera camera_new(double viewport_height, double aspect_ratio,
-                  double focal_length);
+Camera camera_new(vec4 eye, vec4 center, vec4 up, double viewport_height,
+                  double viewport_width, double vfov);
 
 Ray camera_get_ray(Camera camera, double u, double v);
 

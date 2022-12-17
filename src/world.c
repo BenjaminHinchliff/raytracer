@@ -42,30 +42,6 @@ bool screen_load(cJSON *json_scr, Screen *screen) {
   return true;
 }
 
-bool camera_load(cJSON *json_cam, const Screen *screen, Camera *camera) {
-  cJSON *height = cJSON_GetObjectItemCaseSensitive(json_cam, "height");
-  CJSON_ASSERT_NUMBER(height);
-
-  cJSON *focal_length =
-      cJSON_GetObjectItemCaseSensitive(json_cam, "focal-length");
-  CJSON_ASSERT_NUMBER(focal_length);
-
-  cJSON *width = cJSON_GetObjectItemCaseSensitive(json_cam, "width");
-  if (cJSON_IsString(width) && strcmp(width->valuestring, "auto") == 0) {
-    double aspect = (double)screen->width / (double)screen->height;
-    double width = height->valuedouble * aspect;
-    *camera = camera_new(height->valuedouble, width, focal_length->valuedouble);
-  } else if (cJSON_IsNumber(width)) {
-    *camera = camera_new(height->valuedouble, width->valuedouble,
-                         focal_length->valuedouble);
-  } else {
-    fprintf(stderr, "camera width must be a number or \"auto\"\n");
-    return false;
-  }
-
-  return true;
-}
-
 bool vec4_load(cJSON *json_v, vec4 v) {
   size_t i = 0;
   cJSON *e;
@@ -79,6 +55,45 @@ bool vec4_load(cJSON *json_v, vec4 v) {
 
   // only sucessful if precisely 4 elements were read in
   return i == 4;
+}
+
+bool camera_load(cJSON *json_cam, const Screen *screen, Camera *camera) {
+  cJSON *j_eye = cJSON_GetObjectItemCaseSensitive(json_cam, "eye");
+  CJSON_ASSERT_ARRAY(j_eye);
+  vec4 eye;
+  vec4_load(j_eye, eye);
+
+  cJSON *j_center = cJSON_GetObjectItemCaseSensitive(json_cam, "center");
+  CJSON_ASSERT_ARRAY(j_center);
+  vec4 center;
+  vec4_load(j_center, center);
+
+  cJSON *j_up = cJSON_GetObjectItemCaseSensitive(json_cam, "up");
+  CJSON_ASSERT_ARRAY(j_up);
+  vec4 up;
+  vec4_load(j_up, up);
+
+  cJSON *j_height = cJSON_GetObjectItemCaseSensitive(json_cam, "height");
+  CJSON_ASSERT_NUMBER(j_height);
+  double height = j_height->valuedouble;
+
+  cJSON *j_vfov = cJSON_GetObjectItemCaseSensitive(json_cam, "vfov");
+  CJSON_ASSERT_NUMBER(j_vfov);
+  double vfov = j_vfov->valuedouble;
+
+  cJSON *width = cJSON_GetObjectItemCaseSensitive(json_cam, "width");
+  if (cJSON_IsString(width) && strcmp(width->valuestring, "auto") == 0) {
+    double aspect = (double)screen->width / (double)screen->height;
+    double width = height * aspect;
+    *camera = camera_new(eye, center, up, height, width, vfov);
+  } else if (cJSON_IsNumber(width)) {
+    *camera = camera_new(eye, center, up, height, width->valuedouble, vfov);
+  } else {
+    fprintf(stderr, "camera width must be a number or \"auto\"\n");
+    return false;
+  }
+
+  return true;
 }
 
 bool mat_lambertian_load(cJSON *json_lam, Material *material) {
@@ -230,9 +245,8 @@ bool world_load(const char *json_src, World **world_ptr) {
   if (world == NULL) {
     fprintf(stderr, "failed to allocate memory for world\n");
     success = false;
-    goto end;
+    goto err;
   }
-  *world_ptr = world;
 
   // parse world to json object
   json = cJSON_Parse(json_src);
@@ -242,7 +256,7 @@ bool world_load(const char *json_src, World **world_ptr) {
       fprintf(stderr, "Error before: %s\n", error_ptr);
     }
     success = false;
-    goto end;
+    goto err;
   }
 
   // screen
@@ -250,12 +264,12 @@ bool world_load(const char *json_src, World **world_ptr) {
   if (!cJSON_IsObject(screen)) {
     fprintf(stderr, "screen must exist and be an object\n");
     success = false;
-    goto end;
+    goto err;
   }
 
   success = screen_load(screen, &world->screen);
   if (!success) {
-    goto end;
+    goto err;
   }
 
   // camera
@@ -263,12 +277,12 @@ bool world_load(const char *json_src, World **world_ptr) {
   if (!cJSON_IsObject(camera)) {
     fprintf(stderr, "camera must exist and be an object\n");
     success = false;
-    goto end;
+    goto err;
   }
 
   success = camera_load(camera, &world->screen, &world->camera);
   if (!success) {
-    goto end;
+    goto err;
   }
 
   // materials
@@ -276,7 +290,7 @@ bool world_load(const char *json_src, World **world_ptr) {
   if (!cJSON_IsObject(materials)) {
     fprintf(stderr, "materials must be stored in an object\n");
     success = false;
-    goto end;
+    goto err;
   }
 
   // allocate materials
@@ -285,18 +299,18 @@ bool world_load(const char *json_src, World **world_ptr) {
   if (mat_names == NULL) {
     fprintf(stderr, "failed to allocate space for material names\n");
     success = false;
-    goto end;
+    goto err;
   }
   world->materials = malloc(sizeof(*world->materials) * num_mats);
   if (world->materials == NULL) {
     fprintf(stderr, "failed to allocate space for materials\n");
     success = false;
-    goto end;
+    goto err;
   }
 
   success = materials_load(materials, mat_names, world->materials);
   if (!success) {
-    goto end;
+    goto err;
   }
 
   // objects
@@ -304,7 +318,7 @@ bool world_load(const char *json_src, World **world_ptr) {
   if (!cJSON_IsArray(objects)) {
     fprintf(stderr, "objects must be an array of json objects\n");
     success = false;
-    goto end;
+    goto err;
   }
 
   // allocate space for objects
@@ -313,15 +327,20 @@ bool world_load(const char *json_src, World **world_ptr) {
   if (world->objects == NULL) {
     fprintf(stderr, "failed to allocate space for objects\n");
     success = false;
-    goto end;
+    goto err;
   }
 
   success = objects_load(objects, world->objects, mat_names, world->materials,
                          num_mats);
   if (!success) {
-    goto end;
+    goto err;
   }
 
+  *world_ptr = world;
+  goto end;
+
+err:
+  free(world);
 end:
   free(mat_names);
   cJSON_Delete(json);
