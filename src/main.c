@@ -48,7 +48,7 @@ int main(void) {
   fprintf(stderr, "Loading world file...\n");
 
   bool success = world_load(json_src, &world);
-  if (success) {
+  if (!success) {
     fprintf(stderr, "failed to load world\n");
     status = 1;
     goto end;
