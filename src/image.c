@@ -32,6 +32,10 @@ void image_write_png(Image *image, const char *path,
 }
 
 void image_free(Image *image) {
+  if (image == NULL) {
+    return;
+  }
+
   for (int i = 0; i < image->height; i++) {
     free(image->pixels[i]);
   }

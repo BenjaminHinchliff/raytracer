@@ -1,9 +1,9 @@
 {
   "screen": {
-    "width": 1920,
-    "height": 1080,
-    "samples": 512,
-    "max-depth": 32
+    "width": 352,
+    "height": 240,
+    "samples": 16,
+    "max-depth": 8
   },
   "camera": {
     "width": "auto",

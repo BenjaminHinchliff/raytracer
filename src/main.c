@@ -8,7 +8,6 @@
 #include "ray.h"
 #include "trace.h"
 #include "util.h"
-#include "work_queue.h"
 #include "world.h"
 
 #include <cglm/vec4.h>
@@ -31,25 +30,29 @@ double time_as_double(void);
 char *read_file_to_string(const char *path);
 
 int main(void) {
+  int status = 0;
+  char *json_src = NULL;
+  World *world = NULL;
+  Image *image = NULL;
+
   srand(time(NULL));
 
   // get source from file
-  char *json_src = read_file_to_string("tests/scene.json");
+  json_src = read_file_to_string("tests/scene.json");
   if (json_src == NULL) {
     fprintf(stderr, "failed to open scene file\n");
-    return 1;
+    status = 1;
+    goto end;
   }
 
   fprintf(stderr, "Loading world file...\n");
 
-  World world;
   bool success = world_load(json_src, &world);
-  if (!success) {
+  if (success) {
     fprintf(stderr, "failed to load world\n");
-    return 1;
+    status = 1;
+    goto end;
   }
-
-  free(json_src);
 
   fprintf(stderr, "Raytracing...\n");
 
@@ -57,7 +60,7 @@ int main(void) {
 
   double start_time = time_as_double();
 
-  Image *image = trace_rows(&world, rng_state);
+  image = trace_rows(world, rng_state);
 
   double end_time = time_as_double();
 
@@ -69,12 +72,14 @@ int main(void) {
 
   double delta_time = end_time - start_time;
   fprintf(stderr, "Took %f seconds at %f ns/ray\n", delta_time,
-          (delta_time * 1e+9) / (world.screen.width * world.screen.height *
-                                 world.screen.samples));
+          (delta_time * 1e+9) / (world->screen.width * world->screen.height *
+                                 world->screen.samples));
 
+end:
   image_free(image);
-  world_free(&world);
-  return 0;
+  world_free(world);
+  free(json_src);
+  return status;
 }
 
 char *read_file_to_string(const char *path) {
@@ -88,12 +93,14 @@ char *read_file_to_string(const char *path) {
   long length = ftell(f);
   fseek(f, 0, SEEK_SET);
 
-  char *str = malloc(length);
+  char *str = malloc(length + 1);
   if (str == NULL) {
     return NULL;
   }
 
   fread(str, 1, length, f);
+
+  str[length] = '\0';
 
   fclose(f);
 

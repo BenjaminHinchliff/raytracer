@@ -220,12 +220,22 @@ bool objects_load(cJSON *json_objs, Hittable *objects, char **mat_names,
   return true;
 }
 
-bool world_load(const char *json_src, World *world) {
+bool world_load(const char *json_src, World **world_ptr) {
   bool success = true;
+  World *world = NULL;
+  cJSON *json = NULL;
   char **mat_names = NULL;
 
+  world = malloc(sizeof(*world));
+  if (world == NULL) {
+    fprintf(stderr, "failed to allocate memory for world\n");
+    success = false;
+    goto end;
+  }
+  *world_ptr = world;
+
   // parse world to json object
-  cJSON *json = cJSON_Parse(json_src);
+  json = cJSON_Parse(json_src);
   if (json == NULL) {
     const char *error_ptr = cJSON_GetErrorPtr();
     if (error_ptr != NULL) {
@@ -243,7 +253,8 @@ bool world_load(const char *json_src, World *world) {
     goto end;
   }
 
-  if (!(success = screen_load(screen, &world->screen))) {
+  success = screen_load(screen, &world->screen);
+  if (!success) {
     goto end;
   }
 
@@ -255,7 +266,8 @@ bool world_load(const char *json_src, World *world) {
     goto end;
   }
 
-  if (!(success = camera_load(camera, &world->screen, &world->camera))) {
+  success = camera_load(camera, &world->screen, &world->camera);
+  if (!success) {
     goto end;
   }
 
@@ -282,7 +294,8 @@ bool world_load(const char *json_src, World *world) {
     goto end;
   }
 
-  if (!(success = materials_load(materials, mat_names, world->materials))) {
+  success = materials_load(materials, mat_names, world->materials);
+  if (!success) {
     goto end;
   }
 
@@ -303,8 +316,9 @@ bool world_load(const char *json_src, World *world) {
     goto end;
   }
 
-  if (!(success = objects_load(objects, world->objects, mat_names,
-                               world->materials, num_mats))) {
+  success = objects_load(objects, world->objects, mat_names, world->materials,
+                         num_mats);
+  if (!success) {
     goto end;
   }
 
@@ -315,6 +329,11 @@ end:
 }
 
 void world_free(World *world) {
+  if (world == NULL) {
+    return;
+  }
+
   free(world->objects);
   free(world->materials);
+  free(world);
 }

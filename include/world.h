@@ -23,7 +23,7 @@ typedef struct World {
   Material *materials;
 } World;
 
-bool world_load(const char *json_src, World *world);
+bool world_load(const char *json_src, World **world);
 
 void world_free(World *world);
 
