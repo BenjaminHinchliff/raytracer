@@ -3,10 +3,8 @@
 
 #include <cglm/vec4.h>
 
-Camera camera_new(double viewport_height, double aspect_ratio,
+Camera camera_new(double viewport_height, double viewport_width,
                   double focal_length) {
-  const double viewport_width = aspect_ratio * viewport_height;
-
   Camera camera = {
       .origin = GLM_VEC4_ZERO_INIT,
       .horizontal = {viewport_width, 0.0, 0.0, 0.0},

@@ -12,7 +12,7 @@ void trace_ray(World *world, Ray ray, uint32_t state[4], color result) {
   color attenuation = GLM_VEC4_ONE_INIT;
   Ray scattered = ray;
   unsigned int depth;
-  for (depth = 0; depth < world->max_depth; depth++) {
+  for (depth = 0; depth < world->screen.max_depth; depth++) {
     HitRecord rec;
     bool hit = hittable_hit_multiple(world, scattered, 0.001, INFINITY, &rec);
     if (hit) {
@@ -37,7 +37,7 @@ void trace_ray(World *world, Ray ray, uint32_t state[4], color result) {
     }
   }
 
-  if (depth == world->max_depth) {
+  if (depth == world->screen.max_depth) {
     glm_vec4_zero(attenuation);
   }
 

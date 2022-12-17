@@ -10,6 +10,7 @@ typedef struct Screen {
   unsigned int width;
   unsigned int height;
   unsigned int samples;
+  unsigned int max_depth;
 } Screen;
 
 typedef struct World {
@@ -17,9 +18,8 @@ typedef struct World {
   Camera camera;
   Hittable *objects;
   size_t num_objects;
-  unsigned int max_depth;
 } World;
 
-// World load_world()
+bool world_load(const char *json_src, World *world);
 
 #endif
