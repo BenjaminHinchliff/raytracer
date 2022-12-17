@@ -5,6 +5,7 @@
 
 #include "camera.h"
 #include "hittable.h"
+#include "material.h"
 
 typedef struct Screen {
   unsigned int width;
@@ -18,6 +19,7 @@ typedef struct World {
   Camera camera;
   Hittable *objects;
   size_t num_objects;
+  Material *materials;
 } World;
 
 bool world_load(const char *json_src, World *world);

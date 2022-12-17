@@ -1,6 +1,7 @@
 #include "world.h"
 #include "camera.h"
 #include "hittable.h"
+#include "material.h"
 
 #include <cjson/cJSON.h>
 
@@ -80,7 +81,101 @@ bool vec4_load(cJSON *json_v, vec4 v) {
   return i == 4;
 }
 
-bool sphere_load(cJSON *json_sph, Hittable *sphere) {
+bool mat_lambertian_load(cJSON *json_lam, Material *material) {
+  material->type = MATERIAL_TYPE_lambertian;
+
+  cJSON *albedo = cJSON_GetObjectItemCaseSensitive(json_lam, "albedo");
+  CJSON_ASSERT_ARRAY(albedo);
+  vec4_load(albedo, material->l_albedo);
+
+  return true;
+}
+
+bool mat_dielectric_load(cJSON *json_di, Material *material) {
+  material->type = MATERIAL_TYPE_dielectric;
+
+  cJSON *ir = cJSON_GetObjectItemCaseSensitive(json_di, "index-of-refraction");
+  CJSON_ASSERT_NUMBER(ir);
+
+  material->ir = ir->valuedouble;
+
+  return true;
+}
+
+bool mat_metal_load(cJSON *json_mtl, Material *material) {
+  material->type = MATERIAL_TYPE_metal;
+
+  cJSON *albedo = cJSON_GetObjectItemCaseSensitive(json_mtl, "albedo");
+  CJSON_ASSERT_ARRAY(albedo);
+  vec4_load(albedo, material->m_albedo);
+
+  cJSON *fuzz = cJSON_GetObjectItemCaseSensitive(json_mtl, "fuzz");
+  CJSON_ASSERT_NUMBER(fuzz);
+  material->fuzz = fuzz->valuedouble;
+
+  return true;
+}
+
+typedef struct MatKey {
+  const char *key;
+  bool (*loader)(cJSON *, Material *);
+} MatKey;
+
+const MatKey MATERIAL_KEYS[] = {
+    {"lambertian", mat_lambertian_load},
+    {"dielectric", mat_dielectric_load},
+    {"metal", mat_metal_load},
+};
+const size_t NUM_MAT_KEYS = sizeof(MATERIAL_KEYS) / sizeof(MatKey);
+
+// mat names is used to associate materials when objects are loaded later
+bool materials_load(cJSON *json_mats, char **mat_names, Material *materials) {
+  size_t i = 0;
+  cJSON *material;
+  cJSON_ArrayForEach(material, json_mats) {
+    mat_names[i] = material->string;
+
+    size_t m;
+    for (m = 0; m < NUM_MAT_KEYS; m++) {
+      const MatKey *key = &MATERIAL_KEYS[m];
+
+      // search through potential material types to find a match
+      cJSON *mat_data = cJSON_GetObjectItemCaseSensitive(material, key->key);
+      if (cJSON_IsObject(mat_data)) {
+        if (!key->loader(mat_data, &materials[i])) {
+          fprintf(stderr, "failed to load %s material", key->key);
+          return false;
+        }
+        break;
+      }
+    }
+
+    // no material found
+    if (m == NUM_MAT_KEYS) {
+      fprintf(stderr, "unkown material type\n");
+      return false;
+    }
+
+    i++;
+  }
+
+  return true;
+}
+
+// hashmap could be used for better performance
+Material *lookup_material(char **names, Material *materials,
+                          size_t num_materials, const char *material) {
+  for (size_t i = 0; i < num_materials; i++) {
+    if (strcmp(names[i], material) == 0) {
+      return &materials[i];
+    }
+  }
+
+  return NULL;
+}
+
+bool sphere_load(cJSON *json_sph, Hittable *sphere, char **mat_names,
+                 Material *materials, size_t num_mats) {
   sphere->type = HITTABLE_TYPE_sphere;
 
   cJSON *j_center = cJSON_GetObjectItemCaseSensitive(json_sph, "center");
@@ -100,18 +195,20 @@ bool sphere_load(cJSON *json_sph, Hittable *sphere) {
   CJSON_ASSERT_STRING(material);
 
   // TODO: material lookup logic
-  sphere->material = NULL;
+  sphere->material =
+      lookup_material(mat_names, materials, num_mats, material->valuestring);
 
   return true;
 }
 
-bool objects_load(cJSON *json_objs, Hittable *objects) {
+bool objects_load(cJSON *json_objs, Hittable *objects, char **mat_names,
+                  Material *materials, size_t num_mats) {
   size_t i = 0;
   cJSON *object;
   cJSON_ArrayForEach(object, json_objs) {
     cJSON *sphere = cJSON_GetObjectItemCaseSensitive(object, "sphere");
     if (cJSON_IsObject(sphere)) {
-      if (!sphere_load(sphere, &objects[i++])) {
+      if (!sphere_load(sphere, &objects[i++], mat_names, materials, num_mats)) {
         return false;
       }
     } else {
@@ -125,6 +222,7 @@ bool objects_load(cJSON *json_objs, Hittable *objects) {
 
 bool world_load(const char *json_src, World *world) {
   bool success = true;
+  char **mat_names = NULL;
 
   // parse world to json object
   cJSON *json = cJSON_Parse(json_src);
@@ -165,6 +263,33 @@ bool world_load(const char *json_src, World *world) {
     goto end;
   }
 
+  // materials
+  cJSON *materials = cJSON_GetObjectItemCaseSensitive(json, "materials");
+  if (!cJSON_IsObject(materials)) {
+    fprintf(stderr, "materials must be stored in an object\n");
+    success = false;
+    goto end;
+  }
+
+  // allocate materials
+  size_t num_mats = cJSON_GetArraySize(materials);
+  mat_names = malloc(sizeof(*mat_names) * num_mats);
+  if (mat_names == NULL) {
+    fprintf(stderr, "failed to allocate space for material names\n");
+    success = false;
+    goto end;
+  }
+  world->materials = malloc(sizeof(*world->materials) * num_mats);
+  if (world->materials == NULL) {
+    fprintf(stderr, "failed to allocate space for materials\n");
+    success = false;
+    goto end;
+  }
+
+  if (!(success = materials_load(materials, mat_names, world->materials))) {
+    goto end;
+  }
+
   // objects
   cJSON *objects = cJSON_GetObjectItemCaseSensitive(json, "objects");
   if (!cJSON_IsArray(objects)) {
@@ -176,16 +301,19 @@ bool world_load(const char *json_src, World *world) {
   // allocate space for objects
   world->num_objects = (size_t)cJSON_GetArraySize(objects);
   world->objects = malloc(sizeof(*world->objects) * world->num_objects);
-
-  if (!(success = objects_load(objects, world->objects))) {
+  if (world->objects == NULL) {
+    fprintf(stderr, "failed to allocate space for objects\n");
+    success = false;
     goto end;
   }
 
-  // UNFINISHED!!!
-  success = false;
-  goto end;
+  if (!(success = objects_load(objects, world->objects, mat_names,
+                               world->materials, num_mats))) {
+    goto end;
+  }
 
 end:
+  free(mat_names);
   cJSON_Delete(json);
   return success;
 }
