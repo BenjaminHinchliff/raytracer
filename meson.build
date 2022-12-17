@@ -1,7 +1,7 @@
 project('ctracer', 'c',
   version : '1.0.0',
   license : 'MIT',
-  default_options : ['warning_level=3', 'werror=true', 'b_lto=true', 'c_std=gnu11'])
+  default_options : ['warning_level=3',  'b_lto=true', 'c_std=gnu11'])
 
 cc = meson.get_compiler('c')
 
@@ -11,7 +11,7 @@ openmp_dep = dependency('openmp')
 
 libpng_dep = dependency('libpng')
 cglm_dep = dependency('cglm', fallback : ['cglm', 'cglm_dep'])
-cjson_dep = dependency('libcjson', fallback : ['libcjson_dep'])
+cjson_dep = dependency('libcjson', fallback : ['cjson', 'libcjson_dep'])
 
 inc = include_directories('include')
 
