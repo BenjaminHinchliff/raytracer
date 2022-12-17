@@ -12,6 +12,11 @@ srcs = files([
   'world.c',
 ])
 
+opts = []
+if get_option('buildtype') == 'debug'
+  opts += ['b_sanitize=address,undefined', 'b_lundef=false']
+endif
+
 ctracerexe = executable(
   'ctracer',
   srcs,
@@ -23,4 +28,5 @@ ctracerexe = executable(
     cglm_dep,
     cjson_dep,
   ],
+  override_options: opts,
 )
