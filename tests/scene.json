@@ -1,15 +1,15 @@
 {
   "screen": {
-    "width": 360,
-    "height": 240,
-    "samples": 16,
-    "max-depth": 16
+    "width": 1920,
+    "height": 1080,
+    "samples": 1024,
+    "max-depth": 128
   },
   "camera": {
     "eye": [
       0.0,
       0.0,
-      -3.0,
+      3.5,
       0.0
     ],
     "center": [
@@ -26,7 +26,7 @@
     ],
     "height": 2.0,
     "width": "auto",
-    "vfov": 45.0
+    "vfov": 25.0
   },
   "objects": [
     {
