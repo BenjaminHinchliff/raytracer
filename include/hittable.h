@@ -13,8 +13,9 @@ typedef struct World World;
 
 enum HITTABLE_TYPE {
   HITTABLE_TYPE_sphere,
+  HITTABLE_TYPE_triangle,
 };
-#define NUM_HITTABLE_TYPES 1
+#define NUM_HITTABLE_TYPES 2
 
 typedef struct Hittable {
   enum HITTABLE_TYPE type;
@@ -22,9 +23,15 @@ typedef struct Hittable {
     struct { // type = sphere
       vec4 center;
       double radius;
-      const Material *material;
+    };
+    struct { // type = triangle
+      vec4 v0;
+      vec4 v1;
+      vec4 v2;
+      vec4 normal;
     };
   };
+  const Material *material;
 } Hittable;
 
 bool hittable_hit(Hittable hittable, Ray ray, double t_min, double t_max,

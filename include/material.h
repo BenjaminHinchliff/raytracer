@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "color.h"
+#include "hit_record.h"
 #include "ray.h"
 
 enum MATERIAL_TYPE {
@@ -28,14 +29,6 @@ typedef struct Material {
     };
   };
 } Material;
-
-typedef struct HitRecord {
-  vec4 p;
-  vec4 normal;
-  const Material *material;
-  double t;
-  bool front_face;
-} HitRecord;
 
 bool material_scatter(const Material *material, Ray ray,
                       const struct HitRecord rec, uint32_t state[4],

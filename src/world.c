@@ -158,7 +158,7 @@ bool materials_load(cJSON *json_mats, char **mat_names, Material *materials) {
       cJSON *mat_data = cJSON_GetObjectItemCaseSensitive(material, key->key);
       if (cJSON_IsObject(mat_data)) {
         if (!key->loader(mat_data, &materials[i])) {
-          fprintf(stderr, "failed to load %s material", key->key);
+          fprintf(stderr, "failed to load %s material\n", key->key);
           return false;
         }
         break;
@@ -208,28 +208,90 @@ bool sphere_load(cJSON *json_sph, Hittable *sphere, char **mat_names,
 
   cJSON *material = cJSON_GetObjectItemCaseSensitive(json_sph, "material");
   CJSON_ASSERT_STRING(material);
-
-  // TODO: material lookup logic
   sphere->material =
       lookup_material(mat_names, materials, num_mats, material->valuestring);
 
   return true;
 }
 
+bool triangle_load(cJSON *json_tri, Hittable *tri, char **mat_names,
+                   Material *materials, size_t num_mats) {
+  tri->type = HITTABLE_TYPE_triangle;
+
+  cJSON *v0 = cJSON_GetObjectItemCaseSensitive(json_tri, "v0");
+  CJSON_ASSERT_ARRAY(v0);
+  if (!vec4_load(v0, tri->v0)) {
+    return false;
+  }
+
+  cJSON *v1 = cJSON_GetObjectItemCaseSensitive(json_tri, "v1");
+  CJSON_ASSERT_ARRAY(v1);
+  if (!vec4_load(v1, tri->v1)) {
+    return false;
+  }
+
+  cJSON *v2 = cJSON_GetObjectItemCaseSensitive(json_tri, "v2");
+  CJSON_ASSERT_ARRAY(v2);
+  if (!vec4_load(v2, tri->v2)) {
+    return false;
+  }
+
+  cJSON *normal = cJSON_GetObjectItemCaseSensitive(json_tri, "normal");
+  CJSON_ASSERT_ARRAY(normal);
+  if (!vec4_load(normal, tri->normal)) {
+    return false;
+  }
+
+  cJSON *material = cJSON_GetObjectItemCaseSensitive(json_tri, "material");
+  CJSON_ASSERT_STRING(material);
+  tri->material =
+      lookup_material(mat_names, materials, num_mats, material->valuestring);
+
+  return true;
+}
+
+typedef struct ObjKey {
+  const char *key;
+  bool (*loader)(cJSON *, Hittable *, char **mat_names, Material *materials,
+                 size_t num_mats);
+} ObjKey;
+
+const ObjKey OBJECT_KEYS[] = {
+    {"sphere", sphere_load},
+    {"triangle", triangle_load},
+};
+const size_t NUM_OBJECT_KEYS = sizeof(OBJECT_KEYS) / sizeof(ObjKey);
+
 bool objects_load(cJSON *json_objs, Hittable *objects, char **mat_names,
                   Material *materials, size_t num_mats) {
   size_t i = 0;
   cJSON *object;
   cJSON_ArrayForEach(object, json_objs) {
-    cJSON *sphere = cJSON_GetObjectItemCaseSensitive(object, "sphere");
-    if (cJSON_IsObject(sphere)) {
-      if (!sphere_load(sphere, &objects[i++], mat_names, materials, num_mats)) {
-        return false;
+    size_t o;
+    for (o = 0; o < NUM_OBJECT_KEYS; o++) {
+      const ObjKey *key = &OBJECT_KEYS[o];
+
+      cJSON *obj_data = cJSON_GetObjectItemCaseSensitive(object, key->key);
+      if (cJSON_IsObject(obj_data)) {
+        if (!key->loader(obj_data, &objects[i], mat_names, materials,
+                         num_mats)) {
+          fprintf(stderr, "failed to load %s object\n", key->key);
+          return false;
+        }
+        if (objects[i].material == NULL) {
+          fprintf(stderr, "failed to load material\n");
+          return false;
+        }
+        break;
       }
-    } else {
-      fprintf(stderr, "unknown object type");
+    }
+
+    if (o == NUM_OBJECT_KEYS) {
+      fprintf(stderr, "unknown object type\n");
       return false;
     }
+
+    i++;
   }
 
   return true;
