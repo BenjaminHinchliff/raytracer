@@ -12,6 +12,10 @@
 #include "world.h"
 
 #include <cglm/vec4.h>
+
+#define TINYOBJ_LOADER_C_IMPLEMENTATION
+#include <tinyobj_loader_c.h>
+
 #include <math.h>
 #include <stddef.h>
 #include <stdint.h>

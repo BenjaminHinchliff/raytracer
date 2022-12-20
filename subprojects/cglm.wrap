@@ -1,5 +1,5 @@
 [wrap-file]
-directory = cglm-0.8.5
-source_url = https://github.com/recp/cglm/archive/refs/tags/v0.8.5.tar.gz
-source_filename = cglm-0.8.5.tar.gz
-source_hash = baefa21342d228a83c90708459a745d5aa9b0ebb381555eea42db1f37fdf7a5a
+directory = cglm-0.8.8
+source_url = https://github.com/recp/cglm/archive/refs/tags/v0.8.8.tar.gz
+source_filename = cglm-0.8.8.tar.gz
+source_hash = 8e3fd955eb7e961e9cf737743009437c29648dcc618bdabaa65db1047445f542

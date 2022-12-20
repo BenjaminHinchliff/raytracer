@@ -1,0 +1,7 @@
+[wrap-git]
+url = https://github.com/syoyo/tinyobjloader-c.git
+revision = ad4627813f339138f6e0397e0a816c31d6d61fed
+patch_directory = tinyobjloader-c_patch
+
+[provide]
+tinyobjloader-c = tinyobjloader_c_dep

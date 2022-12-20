@@ -48,9 +48,9 @@ Image *trace_rows(World *world, uint32_t state[4]) {
   Image *image = image_new(world->screen.width, world->screen.height);
 
   const int chunk = 16;
-  // #pragma omp parallel shared(world, image)
+#pragma omp parallel shared(world, image)
   {
-    // #pragma omp for schedule(static, chunk)
+#pragma omp for schedule(static, chunk)
     for (int y = 0; y < image->height; y++) {
       for (int x = 0; x < image->width; x++) {
         color sample = GLM_VEC4_ZERO_INIT;

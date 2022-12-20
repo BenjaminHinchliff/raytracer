@@ -24,5 +24,6 @@ ctracerexe = executable(
     libpng_dep,
     cglm_dep,
     cjson_dep,
+    tinyobjloader_dep
   ],
 )
