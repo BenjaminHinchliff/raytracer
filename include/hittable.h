@@ -5,7 +5,9 @@
 #include <stddef.h>
 
 #include "material.h"
+#include "model.h"
 #include "ray.h"
+#include "triangle.h"
 
 #include <cglm/vec4.h>
 
@@ -14,8 +16,9 @@ typedef struct World World;
 enum HITTABLE_TYPE {
   HITTABLE_TYPE_sphere,
   HITTABLE_TYPE_triangle,
+  HITTABLE_TYPE_model,
 };
-#define NUM_HITTABLE_TYPES 2
+#define NUM_HITTABLE_TYPES 3
 
 typedef struct Hittable {
   enum HITTABLE_TYPE type;
@@ -25,10 +28,10 @@ typedef struct Hittable {
       double radius;
     };
     struct { // type = triangle
-      vec4 v0;
-      vec4 v1;
-      vec4 v2;
-      vec4 normal;
+      Triangle tri;
+    };
+    struct { // type = model
+      Model model;
     };
   };
   const Material *material;

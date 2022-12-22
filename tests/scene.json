@@ -1,8 +1,8 @@
 {
   "screen": {
-    "width": 1280,
-    "height": 720,
-    "samples": 512,
+    "width": 720,
+    "height": 480,
+    "samples": 16,
     "max-depth": 16
   },
   "camera": {

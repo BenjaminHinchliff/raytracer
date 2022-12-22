@@ -1,0 +1,73 @@
+{
+  "screen": {
+    "width": 1920,
+    "height": 1080,
+    "samples": 64,
+    "max-depth": 32
+  },
+  "camera": {
+    "eye": [
+      0.0,
+      2.0,
+      5.0,
+      0.0
+    ],
+    "center": [
+      -0.2,
+      0.75,
+      0.0,
+      0.0
+    ],
+    "up": [
+      0.0,
+      1.0,
+      0.0,
+      0.0
+    ],
+    "height": 2.0,
+    "width": "auto",
+    "vfov": 20.0
+  },
+  "objects": [
+    {
+      "model": {
+        "path": "tests/bunny.obj",
+        "material": "cube"
+      }
+    },
+    {
+      "sphere": {
+        "center": [
+          0.0,
+          -101,
+          0.0,
+          0.0
+        ],
+        "radius": 100.0,
+        "material": "floor"
+      }
+    }
+  ],
+  "materials": {
+    "cube": {
+      "lambertian": {
+        "albedo": [
+          0.6,
+          0.3,
+          0.1,
+          1.0
+        ]
+      }
+    },
+    "floor": {
+      "lambertian": {
+        "albedo": [
+          0.2,
+          0.5,
+          0.0,
+          1.0
+        ]
+      }
+    }
+  }
+}

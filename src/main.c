@@ -3,6 +3,7 @@
 #include "hittable.h"
 #include "image.h"
 #include "material.h"
+#include "model.h"
 #include "options.h"
 #include "png_write.h"
 #include "pngconf.h"
@@ -30,9 +31,6 @@
 const double viewport_height = 2.0;
 const double focal_length = 1.0;
 
-void load_file_helper(void *ctx, const char *filename, const int is_mtl,
-                      const char *obj_filename, char **buffer, size_t *len);
-
 double time_as_double(void);
 
 char *read_file_to_string(const char *path);
@@ -52,22 +50,11 @@ int main(int argc, char *argv[]) {
     goto end;
   }
 
-  // test object loading
-  tinyobj_shape_t *shape = NULL;
-  tinyobj_material_t *material = NULL;
-  tinyobj_attrib_t attrib;
-
-  size_t num_shapes;
-  size_t num_materials;
-
-  tinyobj_attrib_init(&attrib);
-
-  int result = tinyobj_parse_obj(
-      &attrib, &shape, &num_shapes, &material, &num_materials, "tests/cube.obj",
-      load_file_helper, NULL, TINYOBJ_FLAG_TRIANGULATE);
-  if (result != TINYOBJ_SUCCESS) {
-    fprintf(stderr, "filed to load cube.obj\n");
-    return 1;
+  Model model;
+  bool success = model_load("tests/cube.obj", &model);
+  if (!success) {
+    status = 1;
+    goto end;
   }
 
   // get source from file
@@ -80,7 +67,7 @@ int main(int argc, char *argv[]) {
 
   fprintf(stderr, "Loading world file...\n");
 
-  bool success = world_load(json_src, &world);
+  success = world_load(json_src, &world);
   if (!success) {
     fprintf(stderr, "failed to load world\n");
     status = 1;
@@ -114,33 +101,6 @@ end:
   world_free(world);
   free(json_src);
   return status;
-}
-
-void load_file_helper(void *ctx, const char *filename, const int is_mtl,
-                      const char *obj_filename, char **buffer, size_t *len) {
-  // supress warnings
-  (void)ctx;
-  (void)obj_filename;
-  (void)is_mtl;
-
-  long string_size = 0, read_size = 0;
-  FILE *handler = fopen(filename, "r");
-
-  if (handler) {
-    fseek(handler, 0, SEEK_END);
-    string_size = ftell(handler);
-    rewind(handler);
-    *buffer = (char *)malloc(sizeof(char) * (string_size + 1));
-    read_size = fread(*buffer, sizeof(char), (size_t)string_size, handler);
-    (*buffer)[string_size] = '\0';
-    if (string_size != read_size) {
-      free(buffer);
-      *buffer = NULL;
-    }
-    fclose(handler);
-  }
-
-  *len = read_size;
 }
 
 char *read_file_to_string(const char *path) {

@@ -2,6 +2,7 @@
 #include "camera.h"
 #include "hittable.h"
 #include "material.h"
+#include "model.h"
 
 #include <cjson/cJSON.h>
 
@@ -220,31 +221,50 @@ bool triangle_load(cJSON *json_tri, Hittable *tri, char **mat_names,
 
   cJSON *v0 = cJSON_GetObjectItemCaseSensitive(json_tri, "v0");
   CJSON_ASSERT_ARRAY(v0);
-  if (!vec4_load(v0, tri->v0)) {
+  if (!vec4_load(v0, tri->tri.v0)) {
     return false;
   }
 
   cJSON *v1 = cJSON_GetObjectItemCaseSensitive(json_tri, "v1");
   CJSON_ASSERT_ARRAY(v1);
-  if (!vec4_load(v1, tri->v1)) {
+  if (!vec4_load(v1, tri->tri.v1)) {
     return false;
   }
 
   cJSON *v2 = cJSON_GetObjectItemCaseSensitive(json_tri, "v2");
   CJSON_ASSERT_ARRAY(v2);
-  if (!vec4_load(v2, tri->v2)) {
+  if (!vec4_load(v2, tri->tri.v2)) {
     return false;
   }
 
   cJSON *normal = cJSON_GetObjectItemCaseSensitive(json_tri, "normal");
   CJSON_ASSERT_ARRAY(normal);
-  if (!vec4_load(normal, tri->normal)) {
+  if (!vec4_load(normal, tri->tri.normal)) {
     return false;
   }
 
   cJSON *material = cJSON_GetObjectItemCaseSensitive(json_tri, "material");
   CJSON_ASSERT_STRING(material);
   tri->material =
+      lookup_material(mat_names, materials, num_mats, material->valuestring);
+
+  return true;
+}
+
+bool hittable_model_load(cJSON *json_model, Hittable *model, char **mat_names,
+                         Material *materials, size_t num_mats) {
+  model->type = HITTABLE_TYPE_model;
+
+  cJSON *path = cJSON_GetObjectItemCaseSensitive(json_model, "path");
+  CJSON_ASSERT_STRING(path);
+
+  if (!model_load(path->valuestring, &model->model)) {
+    return false;
+  }
+
+  cJSON *material = cJSON_GetObjectItemCaseSensitive(json_model, "material");
+  CJSON_ASSERT_STRING(material);
+  model->material =
       lookup_material(mat_names, materials, num_mats, material->valuestring);
 
   return true;
@@ -259,6 +279,7 @@ typedef struct ObjKey {
 const ObjKey OBJECT_KEYS[] = {
     {"sphere", sphere_load},
     {"triangle", triangle_load},
+    {"model", hittable_model_load},
 };
 const size_t NUM_OBJECT_KEYS = sizeof(OBJECT_KEYS) / sizeof(ObjKey);
 

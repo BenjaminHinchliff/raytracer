@@ -12,6 +12,7 @@ srcs = files([
   'trace.c',
   'world.c',
   'options.c',
+  'triangle.c',
   'model.c',
 ])
 
