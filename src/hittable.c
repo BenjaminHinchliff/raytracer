@@ -1,5 +1,6 @@
 #include "hittable.h"
 #include "hit_record.h"
+#include "hittable_list.h"
 #include "model.h"
 #include "ray.h"
 #include "triangle.h"
@@ -54,6 +55,8 @@ bool hittable_hit(Hittable hittable, Ray ray, double t_min, double t_max,
                         rec);
   case HITTABLE_TYPE_model:
     return model_hit(hittable.model, ray, t_min, t_max, hittable.material, rec);
+  case HITTABLE_TYPE_list:
+    return hittable_list_hit(hittable.list, ray, t_min, t_max, rec);
   default:
     fprintf(stderr, "ILLEGAL TYPE CALL IN get_hittable_action: %d\n",
             hittable.type);

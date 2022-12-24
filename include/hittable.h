@@ -18,9 +18,9 @@ enum HITTABLE_TYPE {
   HITTABLE_TYPE_sphere,
   HITTABLE_TYPE_triangle,
   HITTABLE_TYPE_model,
-  HITTABLE_TYPE_aabb,
+  HITTABLE_TYPE_list,
 };
-#define NUM_HITTABLE_TYPES 3
+#define NUM_HITTABLE_TYPES 4
 
 typedef struct Hittable {
   enum HITTABLE_TYPE type;
@@ -35,8 +35,8 @@ typedef struct Hittable {
     struct { // type = model
       Model model;
     };
-    struct { // type = aabb
-      AABB aabb;
+    struct { // type = list
+      struct HittableList *list;
     };
   };
   const Material *material;
