@@ -1,5 +1,6 @@
 #include "trace.h"
 #include "hittable.h"
+#include "hittable_list.h"
 #include "image.h"
 #include "material.h"
 #include "util.h"
@@ -14,7 +15,8 @@ void trace_ray(World *world, Ray ray, uint32_t state[4], color result) {
   unsigned int depth;
   for (depth = 0; depth < world->screen.max_depth; depth++) {
     HitRecord rec;
-    bool hit = hittable_hit_multiple(world, scattered, 0.001, INFINITY, &rec);
+    bool hit =
+        hittable_list_hit(world->objects, scattered, 0.001, INFINITY, &rec);
     if (hit) {
       color mat_attenuation;
       if (material_scatter(rec.material, scattered, rec, state, mat_attenuation,

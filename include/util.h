@@ -5,10 +5,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#ifndef M_PI
-#define M_PI 3.1415926535897932385
-#endif
-
 float degrees_to_radians(float degrees);
 
 float random_float(uint32_t *state);

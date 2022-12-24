@@ -1,6 +1,7 @@
 #include "world.h"
 #include "camera.h"
 #include "hittable.h"
+#include "hittable_list.h"
 #include "material.h"
 #include "model.h"
 
@@ -283,7 +284,7 @@ const ObjKey OBJECT_KEYS[] = {
 };
 const size_t NUM_OBJECT_KEYS = sizeof(OBJECT_KEYS) / sizeof(ObjKey);
 
-bool objects_load(cJSON *json_objs, Hittable *objects, char **mat_names,
+bool objects_load(cJSON *json_objs, HittableList *objects, char **mat_names,
                   Material *materials, size_t num_mats) {
   size_t i = 0;
   cJSON *object;
@@ -294,12 +295,12 @@ bool objects_load(cJSON *json_objs, Hittable *objects, char **mat_names,
 
       cJSON *obj_data = cJSON_GetObjectItemCaseSensitive(object, key->key);
       if (cJSON_IsObject(obj_data)) {
-        if (!key->loader(obj_data, &objects[i], mat_names, materials,
+        if (!key->loader(obj_data, &objects->hittables[i], mat_names, materials,
                          num_mats)) {
           fprintf(stderr, "failed to load %s object\n", key->key);
           return false;
         }
-        if (objects[i].material == NULL) {
+        if (objects->hittables[i].material == NULL) {
           fprintf(stderr, "failed to load material\n");
           return false;
         }
@@ -405,15 +406,14 @@ bool world_load(const char *json_src, World **world_ptr) {
   }
 
   // allocate space for objects
-  world->num_objects = (size_t)cJSON_GetArraySize(objects);
-  world->objects = malloc(sizeof(*world->objects) * world->num_objects);
-  if (world->objects == NULL) {
+  size_t num_hittables = (size_t)cJSON_GetArraySize(objects);
+  if (!hittable_list_new(num_hittables, &world->objects)) {
     fprintf(stderr, "failed to allocate space for objects\n");
     success = false;
     goto err;
   }
 
-  success = objects_load(objects, world->objects, mat_names, world->materials,
+  success = objects_load(objects, &world->objects, mat_names, world->materials,
                          num_mats);
   if (!success) {
     goto err;
@@ -435,7 +435,7 @@ void world_free(World *world) {
     return;
   }
 
-  free(world->objects);
+  hittable_list_free(world->objects);
   free(world->materials);
   free(world);
 }

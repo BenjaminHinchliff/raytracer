@@ -61,19 +61,17 @@ bool hittable_hit(Hittable hittable, Ray ray, double t_min, double t_max,
   }
 }
 
-bool hittable_hit_multiple(World *hittables, Ray ray, double t_min,
-                           double t_max, HitRecord *rec) {
-  HitRecord tmp_rec;
-  bool hit = false;
-  double closest = t_max;
-
-  for (size_t i = 0; i < hittables->num_objects; i++) {
-    if (hittable_hit(hittables->objects[i], ray, t_min, closest, &tmp_rec)) {
-      hit = true;
-      closest = tmp_rec.t;
-      *rec = tmp_rec;
-    }
+bool hittable_bounding_box(Hittable hittable, AABB *box) {
+  switch (hittable.type) {
+  case HITTABLE_TYPE_sphere: {
+    float radius = hittable.radius;
+    vec4 r_vec = {radius, radius, radius, 0.0f};
+    glm_vec4_sub(hittable.center, r_vec, box->min);
+    glm_vec4_add(hittable.center, r_vec, box->max);
+    return true;
   }
-
-  return hit;
+  default:
+    fprintf(stderr, "unknown hittable for bounding box generation\n");
+    exit(1);
+  }
 }

@@ -5,6 +5,7 @@
 
 #include "camera.h"
 #include "hittable.h"
+#include "hittable_list.h"
 #include "material.h"
 
 typedef struct Screen {
@@ -17,8 +18,7 @@ typedef struct Screen {
 typedef struct World {
   Screen screen;
   Camera camera;
-  Hittable *objects;
-  size_t num_objects;
+  HittableList objects;
   // here to keep track of the pointer
   Material *materials;
 } World;

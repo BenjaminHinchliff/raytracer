@@ -50,13 +50,6 @@ int main(int argc, char *argv[]) {
     goto end;
   }
 
-  Model model;
-  bool success = model_load("tests/cube.obj", &model);
-  if (!success) {
-    status = 1;
-    goto end;
-  }
-
   // get source from file
   json_src = read_file_to_string(opts->world_path);
   if (json_src == NULL) {
@@ -67,7 +60,7 @@ int main(int argc, char *argv[]) {
 
   fprintf(stderr, "Loading world file...\n");
 
-  success = world_load(json_src, &world);
+  bool success = world_load(json_src, &world);
   if (!success) {
     fprintf(stderr, "failed to load world\n");
     status = 1;

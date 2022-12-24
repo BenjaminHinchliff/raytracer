@@ -1,6 +1,6 @@
 #include "util.h"
 
-float degrees_to_radians(float degrees) { return degrees * M_PI / 180.0; }
+float degrees_to_radians(float degrees) { return degrees * GLM_PI / 180.0; }
 
 uint32_t XOrShift32(uint32_t *state) {
   uint32_t x = *state;

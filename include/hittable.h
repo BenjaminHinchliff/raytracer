@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "aabb.h"
 #include "material.h"
 #include "model.h"
 #include "ray.h"
@@ -17,6 +18,7 @@ enum HITTABLE_TYPE {
   HITTABLE_TYPE_sphere,
   HITTABLE_TYPE_triangle,
   HITTABLE_TYPE_model,
+  HITTABLE_TYPE_aabb,
 };
 #define NUM_HITTABLE_TYPES 3
 
@@ -33,6 +35,9 @@ typedef struct Hittable {
     struct { // type = model
       Model model;
     };
+    struct { // type = aabb
+      AABB aabb;
+    };
   };
   const Material *material;
 } Hittable;
@@ -40,7 +45,6 @@ typedef struct Hittable {
 bool hittable_hit(Hittable hittable, Ray ray, double t_min, double t_max,
                   HitRecord *rec);
 
-bool hittable_hit_multiple(World *hittables, Ray ray, double t_min,
-                           double t_max, HitRecord *rec);
+bool hittable_bounding_box(Hittable hittable, AABB *box);
 
 #endif
