@@ -16,14 +16,14 @@ bool hittable_list_new(size_t num_hittables, HittableList *list) {
   return true;
 }
 
-bool hittable_list_hit(const HittableList *list, Ray ray, double t_min,
+bool hittable_list_hit(const HittableList list, Ray ray, double t_min,
                        double t_max, HitRecord *rec) {
   HitRecord tmp_rec;
   bool hit = false;
   double closest = t_max;
 
-  for (size_t i = 0; i < list->num_hittables; i++) {
-    if (hittable_hit(list->hittables[i], ray, t_min, closest, &tmp_rec)) {
+  for (size_t i = 0; i < list.num_hittables; i++) {
+    if (hittable_hit(list.hittables[i], ray, t_min, closest, &tmp_rec)) {
       hit = true;
       closest = tmp_rec.t;
       *rec = tmp_rec;

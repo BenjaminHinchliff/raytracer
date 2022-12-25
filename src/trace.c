@@ -16,7 +16,7 @@ void trace_ray(World *world, Ray ray, uint32_t state[4], color result) {
   for (depth = 0; depth < world->screen.max_depth; depth++) {
     HitRecord rec;
     bool hit =
-        hittable_list_hit(&world->objects, scattered, 0.001, INFINITY, &rec);
+        hittable_list_hit(world->objects, scattered, 0.001, INFINITY, &rec);
     if (hit) {
       color mat_attenuation;
       if (material_scatter(rec.material, scattered, rec, state, mat_attenuation,
